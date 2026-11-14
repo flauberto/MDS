@@ -1,0 +1,296 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><title>Batuta - Manual do Usuário</title>
+<style>
+@page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+body { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 10.5pt; line-height: 1.5; color: #1b1d21; }
+h1 { font-size: 21pt; margin: 0 0 6pt; padding-bottom: 5pt; border-bottom: 3px solid #ffb020; page-break-before: always; }
+h2 { font-size: 13.5pt; margin: 16pt 0 4pt; color: #14161a; page-break-after: avoid; }
+h3 { font-size: 11pt; margin: 11pt 0 2pt; page-break-after: avoid; }
+p { margin: 4pt 0 6pt; } li { margin: 2pt 0; }
+img { max-width: 100%; border-radius: 6px; display: block; margin: 8pt auto; }
+.cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; background: #14161a; color: #f3f5f8; padding: 0 22mm; margin: -2mm -4mm; border-radius: 8px; }
+.cover h1 { font-size: 52pt; border: 0; color: #ffb020; margin: 0; page-break-before: avoid; }
+.cover p { font-size: 15pt; color: #a3acb9; }
+.box { background: #fff6e0; border-left: 4px solid #ffb020; padding: 6pt 10pt; margin: 8pt 0; page-break-inside: avoid; }
+.warn { background: #ffecec; border-left-color: #ff5c5c; }
+table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; page-break-inside: avoid; }
+th, td { border: 1px solid #d5d9df; padding: 4pt 7pt; text-align: left; vertical-align: top; font-size: 9.8pt; }
+th { background: #eef0f3; }
+kbd, .b { background: #2b2f37; color: #fff; border-radius: 4px; padding: 0 5px; font-size: 9.3pt; font-family: inherit; white-space: nowrap; }
+.phones { display: flex; gap: 8pt; justify-content: center; } .phones img { width: 31%; margin: 6pt 0; }
+.two, .phones, .keep { page-break-inside: avoid; break-inside: avoid; }
+.two { display: flex; gap: 12pt; align-items: flex-start; } .two img { width: 36%; flex: none; margin: 4pt 0; } .two div { flex: 1; }
+.toc li { list-style: none; margin: 3pt 0; } .toc { padding-left: 0; }
+</style></head><body>
+
+<div class="cover"><h1>Batuta</h1><p>DAW de direção musical<br>Manual do usuário · versão 0.1</p>
+<p style="font-size:11pt;margin-top:30mm">Windows: central de produção e palco principal<br>Android: módulo portátil para ensaios, gigs menores e backup</p></div>
+
+<h1>Sumário</h1>
+<ul class="toc">
+<li><b>1.</b> O que é o Batuta e como ele se organiza</li>
+<li><b>2.</b> Instalação</li>
+<li><b>3.</b> Windows: primeiros passos</li>
+<li><b>4.</b> Windows: montando uma música com cenas e stems</li>
+<li><b>5.</b> Windows: mixer e saídas da interface de áudio</li>
+<li><b>6.</b> Windows: metrônomo, voz e mapa de andamento</li>
+<li><b>7.</b> Windows: pads, Auto-PAD e controle por MIDI</li>
+<li><b>8.</b> Android: o app de palco</li>
+<li><b>9.</b> Usando os dois juntos: exportar setlist e Ableton Link</li>
+<li><b>10.</b> Roteiros prontos para ensaio e palco</li>
+<li><b>11.</b> Problemas comuns</li>
+<li><b>12.</b> O que esta versão ainda não faz</li>
+</ul>
+
+<h1>1. O que é o Batuta</h1>
+<p>O Batuta é a ferramenta do diretor musical: ele toca o click, as guias de voz e as trilhas pré-gravadas (VS/stems) da banda, na ordem que você decidir na hora, e manda cada coisa para a saída certa.</p>
+<table>
+<tr><th style="width:22%"></th><th>Batuta no Windows</th><th>Batuta no Android</th></tr>
+<tr><td><b>Para quê</b></td><td>Preparar as músicas e comandar o palco principal</td><td>Ensaios, gigs menores e backup do notebook</td></tr>
+<tr><td><b>Saídas de áudio</b></td><td>Todas as saídas da sua interface (click em uma, bateria em outra, VS em estéreo...)</td><td>Sempre 2 canais: esquerdo para click e guias, direito para VS, pads e efeitos</td></tr>
+<tr><td><b>Como toca</b></td><td>Por cenas (Intro, Verso, Refrão...) que você dispara ou que seguem sozinhas</td><td>Música inteira do início ao fim, ou só click e pads</td></tr>
+</table>
+<h2>As palavras que o Batuta usa</h2>
+<table>
+<tr><td style="width:22%"><b>Setlist</b></td><td>O arquivo com todas as músicas do evento, na ordem.</td></tr>
+<tr><td><b>Música</b></td><td>Tem seu andamento, sua contagem inicial, seu tom de pad e, se você quiser, suas trilhas.</td></tr>
+<tr><td><b>Trilha</b></td><td>Uma coluna da grade: um instrumento ou grupo (Bateria, Baixo, Click guia...). Cada trilha tem fader e saída própria.</td></tr>
+<tr><td><b>Cena</b></td><td>Uma linha da grade: uma parte da música (Intro, Verso, Refrão). Disparar a cena toca todos os clipes da linha juntos.</td></tr>
+<tr><td><b>Clipe</b></td><td>Um arquivo de áudio colocado no cruzamento de uma cena com uma trilha.</td></tr>
+<tr><td><b>Bloco de andamento</b></td><td>Um trecho com tantos compassos, uma fórmula de compasso e um BPM (fixo ou em rampa).</td></tr>
+<tr><td><b>Trilha-guia</b></td><td>Trilha que só os músicos ouvem (click gravado, guia falada). No celular ela vai para o canal esquerdo.</td></tr>
+</table>
+
+<h1>2. Instalação</h1>
+<h2>Windows</h2>
+<p>O Batuta é um único arquivo, <b>Batuta.exe</b>. Não há instalador: copie para uma pasta sua e abra com dois cliques. Se o Windows mostrar o aviso azul "O Windows protegeu o computador", clique em <b>Mais informações</b> e em <b>Executar assim mesmo</b>.</p>
+<p>Para palco, use uma interface de áudio com driver <b>ASIO</b> do fabricante instalado. É o que garante baixa latência e várias saídas independentes.</p>
+<h2>Android</h2>
+<ol><li>Copie o arquivo <b>Batuta.apk</b> para o celular (cabo, Drive, WhatsApp para você mesmo).</li>
+<li>Toque no arquivo. O Android vai pedir permissão para "instalar apps desconhecidos" a partir do aplicativo que você usou para abrir; permita e volte.</li>
+<li>Toque em <b>Instalar</b>.</li></ol>
+<p>Requer Android 7 ou mais recente. Na primeira vez que parear um pedal Bluetooth, o app pede permissão de Bluetooth.</p>
+
+<h1>3. Windows: primeiros passos</h1>
+<img src="desk_main.png">
+<h2>A tela</h2>
+<table>
+<tr><td style="width:24%"><b>Barra superior</b></td><td><span class="b">Arquivo</span>, Play e Stop, visor (BPM, fórmula de compasso, compasso.tempo e luzes dos tempos), botão do metrônomo, <span class="b">Link</span> e <span class="b">Seguir</span>, <span class="b">Áudio/MIDI</span> e <span class="b">Exportar p/ celular</span>.</td></tr>
+<tr><td><b>Setlist</b> (esquerda)</td><td>As músicas do evento. Clique para selecionar, dois cliques para renomear. Os botões embaixo criam, duplicam, excluem e reordenam.</td></tr>
+<tr><td><b>Grade de sessão</b> (centro)</td><td>Cenas nas linhas, trilhas nas colunas.</td></tr>
+<tr><td><b>Trilhas</b> (abaixo da grade)</td><td>Fader, mute e saída de cada trilha.</td></tr>
+<tr><td><b>Click, voz e efeitos</b> (direita)</td><td>Fader, mute e saída do Click, da Subdivisão, da Voz, do Auto-PAD e dos One-shots.</td></tr>
+<tr><td><b>Abas</b> (embaixo)</td><td>Andamento, Pads e Auto-PAD, Click e voz, MIDI.</td></tr>
+</table>
+<h2>Configurar o áudio (faça uma vez)</h2>
+<ol><li>Clique em <span class="b">Áudio/MIDI</span>.</li>
+<li>Em <b>Audio device type</b>, escolha <b>ASIO</b>. Em <b>Device</b>, escolha a sua interface.</li>
+<li>Em <b>Active output channels</b>, marque todas as saídas que for usar.</li>
+<li>Em <b>Audio buffer size</b>, comece com 256 amostras. Se ouvir estalos, aumente; se sentir atraso ao disparar pads, diminua.</li>
+<li>Feche a janela. O Batuta lembra dessa configuração.</li></ol>
+<div class="box">Se aparecer "Sem dispositivo de áudio" na barra superior, o Batuta não encontrou nenhuma saída de som: nada vai tocar até você escolher um dispositivo em Áudio/MIDI.</div>
+<h2>Salvar e abrir</h2>
+<p><span class="b">Arquivo</span> → <b>Salvar</b> grava a setlist em um arquivo <b>.batuta</b>. O arquivo guarda a montagem, não os áudios: ele aponta para os arquivos de som onde eles estão.</p>
+<div class="box"><b>Recomendação:</b> crie uma pasta por evento e coloque dentro dela o arquivo .batuta e todos os áudios. Assim você pode mover ou copiar a pasta inteira para outro computador sem perder nada.</div>
+
+<h1>4. Windows: montando uma música</h1>
+<h2>Caminho rápido: importar os stems</h2>
+<ol><li>Selecione a música na setlist (ou crie uma com <b>+</b>).</li>
+<li><span class="b">Arquivo</span> → <b>Importar stems (multitrack)…</b> e selecione todos os arquivos da música de uma vez.</li>
+<li>O Batuta cria uma cena nova com uma trilha para cada arquivo, com o nome do arquivo. Arquivos com "click", "guia", "guide" ou "cue" no nome já entram marcados como trilha-guia.</li></ol>
+<p>Também funciona arrastar arquivos do Explorador para a grade: eles ocupam a linha onde você soltar, um por trilha, da coluna onde soltou para a direita. Formatos aceitos: WAV, AIFF, FLAC, OGG e MP3.</p>
+<h2>Dividindo a música em cenas</h2>
+<p>Para poder repetir um refrão ou pular a ponte, cada parte precisa ser uma cena com seus próprios arquivos (Intro, Verso, Refrão...), já cortados no seu editor de áudio. Clique em <b>+ Cena</b> para criar uma linha e clique em um espaço vazio para escolher o arquivo daquele clipe.</p>
+<div class="box warn"><b>Importante:</b> o Batuta não estica nem encolhe o áudio. Cada clipe toca na velocidade em que foi gravado, então o andamento da música no Batuta deve ser o mesmo dos stems.</div>
+<h2>Tocando</h2>
+<table>
+<tr><td style="width:36%">Clicar em uma cena (coluna CENAS)</td><td>Dispara todos os clipes da linha. As trilhas sem clipe naquela linha param.</td></tr>
+<tr><td>Clicar em um clipe</td><td>Dispara só aquele clipe, sem mexer nas outras trilhas.</td></tr>
+<tr><td>Quadrado no fim da coluna</td><td>Para aquela trilha.</td></tr>
+<tr><td>Play (ou barra de espaço)</td><td>Começa a música pela primeira cena.</td></tr>
+<tr><td>Stop</td><td>Para tudo e volta ao início.</td></tr>
+</table>
+<p><b>Tudo entra no início do compasso seguinte.</b> Você pode clicar a qualquer momento: o triângulo pisca em amarelo enquanto a cena espera e fica verde quando entra. Se o transporte estiver parado, disparar uma cena dá a contagem inicial e começa por ela.</p>
+<div class="keep"><h2>Configurando a cena: duração, seguimento e guia de voz</h2>
+<div class="two" style="break-inside:auto"><img src="desk_scenemenu.png"><div>
+<p>Clique com o botão direito na cena e escolha <b>Editar cena…</b>:</p>
+<ul><li><b>Duração (compassos):</b> quanto a cena dura.</li>
+<li><b>Ao terminar a duração (ação de seguimento):</b> <i>Nenhuma</i> (fica até você mandar), <i>Próxima cena</i>, <i>Repetir esta cena</i>, <i>Parar</i> ou <i>Voltar para a primeira cena</i>.</li>
+<li><b>Guia de voz ao chamar a cena:</b> uma voz diz "Verso", "Refrão", "Ponte"... no canal da Voz.</li></ul>
+<p>Na grade, cada cena mostra a duração e um símbolo: → próxima, ↻ repetir, ■ parar, ⇤ primeira.</p></div></div></div>
+<p>Com seguimento "Próxima cena" em todas, a música toca sozinha do início ao fim; você só intervém para mudar o roteiro. Se você disparar outra cena antes do fim, a sua escolha vale. A guia de voz é falada um compasso antes da troca automática, ou no momento em que você clica.</p>
+<h2>Opções do clipe e da trilha</h2>
+<p><b>Botão direito no clipe:</b> repetir em loop, volume do clipe, trocar arquivo, remover. <b>Botão direito (ou dois cliques) no nome da trilha:</b> renomear, marcar como trilha-guia, mover, excluir.</p>
+<div class="box">Adicionar ou remover clipes, trilhas e cenas interrompe a reprodução. Faça a montagem antes; no palco, mexa só em faders, mutes e disparos.</div>
+
+<h1>5. Windows: mixer e saídas</h1>
+<p>Cada trilha e cada canal de "Click, voz e efeitos" tem três controles: o <b>fader</b> (dois cliques voltam para 0 dB), o botão <b>M</b> (mute) e a <b>lista de saída</b>.</p>
+<p>Na lista de saída você escolhe para onde aquele som vai na interface de áudio: um par estéreo (<b>1/2</b>, <b>3/4</b>...) ou uma saída mono (<b>Mono 1</b>, <b>Mono 2</b>...). Trilhas estéreo enviadas para uma saída mono são somadas.</p>
+<h2>Exemplo: interface de 4 saídas</h2>
+<table>
+<tr><th>O quê</th><th>Saída no Batuta</th><th>Vai para</th></tr>
+<tr><td>Click, Subdiv., Voz e trilha "Click guia"</td><td>Mono 1</td><td>Fones dos músicos</td></tr>
+<tr><td>Trilha "Bateria" (loops, percussão)</td><td>Mono 2</td><td>Canal próprio na mesa</td></tr>
+<tr><td>Demais trilhas de VS, Auto-PAD e One-shots</td><td>3/4</td><td>Par estéreo na mesa (PA)</td></tr>
+</table>
+<p>Se uma saída aparecer como "(indisp.)", ela não existe ou não está marcada em Áudio/MIDI; aquele som fica mudo até você escolher outra.</p>
+<div class="box warn">Confira sempre, antes do evento, que o Click e a Voz <b>não</b> estão indo para as saídas do PA.</div>
+
+<h1>6. Windows: metrônomo, voz e andamento</h1>
+<h2>Aba "Click e voz"</h2>
+<img src="desk_click.png">
+<ul><li><b>Timbre do click:</b> Digital, Madeira, Cowbell ou Beep. O primeiro tempo do compasso é sempre mais agudo e forte.</li>
+<li><b>Subdivisão:</b> colcheias, tercinas ou semicolcheias, com fader próprio (Subdiv.).</li>
+<li><b>Contagem inicial:</b> nenhum, 1, 2 ou 4 compassos antes de a música começar. O visor mostra o compasso em amarelo e negativo durante a contagem.</li>
+<li><b>Voz de contagem:</b> desligada, só na contagem inicial ("um, dois, três, quatro") ou em todos os compassos. Desligada também silencia as guias de voz das cenas.</li>
+<li><b>Idioma da voz:</b> português ou inglês.</li></ul>
+<p>Timbre, voz e idioma valem para a setlist toda; subdivisão e contagem são de cada música. O botão do metrônomo na barra superior liga e desliga o click sem parar a música.</p>
+<h2>Aba "Andamento": o mapa de andamento</h2>
+<img src="desk_tempo.png">
+<p>O andamento da música é uma sequência de <b>blocos</b>. O gráfico mostra os compassos na horizontal e o BPM na vertical; a fórmula de compasso aparece no alto de cada bloco e a linha verde é a posição atual.</p>
+<ul><li><b>Selecionar um bloco:</b> clique nele. Os campos embaixo mostram seus valores.</li>
+<li><b>Compassos, Fórmula, BPM início, BPM fim:</b> digite ou use − e +.</li>
+<li><b>Rampa (accelerando ou ritardando):</b> deixe o BPM fim diferente do BPM início. O andamento muda gradualmente ao longo do bloco.</li>
+<li><b>Arrastar as bolinhas:</b> a da esquerda é o BPM do início, a da direita o do fim. Em um bloco de andamento fixo, arrastar a bolinha esquerda move as duas; segure Shift para mover só o início.</li>
+<li><b>Novo bloco / Excluir bloco:</b> o novo bloco entra depois do selecionado, já no andamento em que o anterior terminou.</li></ul>
+<p>Depois do último bloco, o andamento final continua até você parar (linha tracejada).</p>
+<h3>Exemplo: 7/8 no refrão e ritardando no final</h3>
+<table><tr><th>Bloco</th><th>Compassos</th><th>Fórmula</th><th>BPM início</th><th>BPM fim</th></tr>
+<tr><td>Verso</td><td>16</td><td>4/4</td><td>84</td><td>84</td></tr>
+<tr><td>Refrão</td><td>4</td><td>7/8</td><td>84</td><td>84</td></tr>
+<tr><td>Final</td><td>4</td><td>4/4</td><td>84</td><td>66</td></tr></table>
+<p>O BPM sempre se refere à semínima. Em fórmulas com denominador 8, o click marca as colcheias.</p>
+
+<h1>7. Windows: pads, Auto-PAD e MIDI</h1>
+<h2>Aba "Pads e Auto-PAD"</h2>
+<img src="desk_pads.png">
+<p><b>One-shots:</b> 16 pads que disparam sons curtos na hora, sem esperar o compasso. Oito já vêm prontos (Shaker, Palma, Sub drop, Riser, Impacto, Bumbo, Pandeiro, Swell). Clique com o botão direito em um pad para carregar um arquivo seu (até 30 segundos), escolher um som embutido, renomear, ajustar o volume ou limpar.</p>
+<p><b>Auto-PAD:</b> um ambiente contínuo (fundamental e quinta, serve para tom maior ou menor). Escolha o tom da música na lista e ligue o botão <span class="b">Auto-PAD</span>. Ao trocar de música na setlist, o pad passa para o novo tom em transição suave de cerca de 4 segundos, sem silêncio entre as músicas. Ele continua soando com o transporte parado; desligue no botão.</p>
+<h2>Aba "MIDI": controlar por teclado, pedaleira ou controlador</h2>
+<img src="desk_midi.png">
+<ol><li>Conecte o controlador. O Batuta abre sozinho todas as entradas MIDI.</li>
+<li>Na linha da função desejada, clique em <b>aprender</b>.</li>
+<li>Aperte a tecla, o pedal ou mova o botão no controlador. Pronto: a linha mostra o que foi aprendido.</li>
+<li>Para desfazer, clique em <b>limpar</b>.</li></ol>
+<p>Funções mapeáveis: Play/Stop, Play, Stop, próxima música e anterior, próxima cena e anterior, cenas 1 a 8, pads 1 a 16, Auto-PAD, Click, e os faders (use um botão giratório ou deslizante). O mapeamento é salvo junto com a setlist.</p>
+
+<h1>8. Android: o app de palco</h1>
+<h2>A ligação: cabo Y</h2>
+<p>O celular só tem dois canais, então o Batuta os separa sempre da mesma forma, sem opção de mudar:</p>
+<table><tr><th>Canal esquerdo (L)</th><th>Canal direito (R)</th></tr>
+<tr><td>Click, subdivisão, voz de contagem e trilhas-guia</td><td>VS, Auto-PAD e one-shots</td></tr>
+<tr><td>Vai para os fones dos músicos</td><td>Vai para a mesa de som / PA</td></tr></table>
+<p>Use um cabo Y (P2 estéreo para dois P10 mono) na saída de fone ou em um adaptador USB-C. A ponta do canal esquerdo vai para o sistema de fones; a do direito, para a mesa.</p>
+<div class="box warn">Teste qual ponta é qual antes do evento. Se trocar, o click vai para o público. Deixe o volume do celular no máximo e coloque o aparelho em modo avião com Wi-Fi ligado (ou "Não perturbe") para que nenhuma notificação soe no PA.</div>
+<h2>Tela Palco</h2>
+<div class="two"><img src="m_palco.png"><div>
+<ul><li><b>Setas no alto:</b> música anterior e próxima da setlist.</li>
+<li><b>Visor:</b> BPM, compasso.tempo e uma luz por tempo (o primeiro em laranja). Durante a contagem inicial o visor mostra "CONTAGEM".</li>
+<li><b>Auto-PAD:</b> liga e desliga o pad no tom da música. Ao trocar de música, ele faz a transição sozinho.</li>
+<li><b>Metrônomo:</b> liga e desliga o click.</li>
+<li><b>Cadeado (trava de palco):</b> vem ligado. Com ele, <b>Stop</b> e a troca de música durante a execução só valem com dois toques seguidos; no primeiro aparece "Toque de novo para confirmar".</li>
+<li><b>Play e Stop:</b> botões grandes na base.</li></ul>
+<p><b>A tela nunca apaga</b> enquanto o app está aberto. O botão "voltar" do Android também precisa ser pressionado duas vezes para sair.</p></div></div>
+<div class="keep"><h2>Telas Mixer e Pads</h2>
+<div class="phones"><img src="m_mixer.png"><img src="m_pads.png"><img src="m_blocos.png"></div></div>
+<p><b>Mixer:</b> um fader largo por linha, sempre visível: Click, Subdivisão, Voz, Auto-PAD, One-shots e, se a música veio do computador, Guias e VS. A etiqueta L ou R mostra para qual canal cada um vai. O botão <b>M</b> silencia.</p>
+<p><b>Pads:</b> 12 botões grandes que disparam sons curtos no canal R. Para trocar o som de um pad, toque em <b>Editar pads</b>, toque no pad e escolha um som embutido ou um arquivo do aparelho; toque em Editar pads de novo para voltar a tocar.</p>
+<h2>Tela Músicas: setlist e metrônomo em blocos</h2>
+<p>No alto fica a setlist: toque em uma música para selecioná-la; os botões <b>Nova</b>, <b>Excluir</b>, <b>Subir</b> e <b>Descer</b> ficam na base. Abaixo, os dados da música selecionada: nome, tom do Auto-PAD, contagem inicial e subdivisão (toque para alterar).</p>
+<p>Em <b>Metrônomo em blocos</b> você programa o andamento. Toque em um bloco para editar: quantos compassos, fórmula de compasso (digite como 4/4 ou 7/8), BPM no início e BPM no fim.</p>
+<h3>Exemplo: "8 compassos a 100 BPM, depois subir para 120 em 2 compassos"</h3>
+<table><tr><th>Bloco</th><th>Compassos</th><th>BPM início</th><th>BPM fim</th></tr>
+<tr><td>1</td><td>8</td><td>100</td><td>100</td></tr><tr><td>2</td><td>2</td><td>100</td><td>120</td></tr><tr><td>3</td><td>8 (ou quantos quiser)</td><td>120</td><td>120</td></tr></table>
+<p>Depois do último bloco, o andamento final continua até você parar.</p>
+<div class="keep"><h2>Tela Ajustes</h2>
+<div class="two"><img src="m_ajustes.png"><div>
+<ul><li><b>Ableton Link</b> e <b>Quem dita o andamento:</b> veja o capítulo 9.</li>
+<li><b>Timbre do click, Voz de contagem, Idioma da voz:</b> toque para alternar.</li>
+<li><b>Parear pedal Bluetooth MIDI…:</b> ligue o pedal (M-Vave, AirTurn em modo MIDI e similares), toque aqui e escolha-o na lista. Ele passa a aparecer em "Controladores conectados".</li>
+<li><b>Mapear botões (MIDI Learn)…:</b> toque na função (Play/Stop, Próxima música, pads...), depois pise no pedal. Toque em "limpar" para desfazer.</li>
+<li><b>Receber por Wi-Fi:</b> mostra o IP deste celular (veja o capítulo 9).</li>
+<li><b>Abrir pacote (.batpack)…:</b> carrega uma setlist enviada pelo computador.</li>
+<li><b>Nova setlist vazia neste celular.</b></li></ul></div></div></div>
+<div class="box"><b>Sugestão para pedal de 2 botões:</b> um em "Play/Stop" e outro em "Próxima música". Com 4 botões, acrescente "Auto-PAD liga/desliga" e "Música anterior".</div>
+
+<h1>9. Usando os dois juntos</h1>
+<h2>Exportar a setlist para o celular</h2>
+<p>No Windows, <span class="b">Exportar p/ celular</span> prepara um pacote único (<b>.batpack</b>) com a setlist inteira. Para cada música com trilhas, o Batuta:</p>
+<ul><li>toca as cenas <b>de cima para baixo, cada uma pela sua duração em compassos</b>, e grava o resultado;</li>
+<li>junta as trilhas-guia no canal esquerdo e todas as outras trilhas, somadas em mono, no canal direito de um arquivo "split stereo";</li>
+<li>comprime o áudio em OGG de alta qualidade, respeitando faders e mutes.</li></ul>
+<p>Andamento, contagem, tom do pad, one-shots e ajustes do click vão junto. O click não é gravado no arquivo: o celular o gera na hora, e por isso você continua podendo mixar click, subdivisão e voz nos faders.</p>
+<div class="box">Antes de exportar, confira a <b>duração em compassos de cada cena</b> e a ordem das linhas: é isso que define a forma da música no celular. Músicas sem trilhas viram músicas só de click e pad.</div>
+<h3>Opção A: enviar por Wi-Fi</h3>
+<ol><li>Conecte computador e celular na mesma rede Wi-Fi e abra o Batuta no celular.</li>
+<li>No Windows: <span class="b">Exportar p/ celular</span> → <b>Enviar por Wi-Fi para o celular…</b></li>
+<li>Escolha o celular na lista. Se ele não aparecer, escolha <b>Digitar o IP do celular…</b> e informe o endereço mostrado em Ajustes → Receber por Wi-Fi.</li>
+<li>O celular mostra o progresso e abre a setlist automaticamente.</li></ol>
+<h3>Opção B: por arquivo (Google Drive, Dropbox, cabo, pendrive)</h3>
+<ol><li>No Windows: <span class="b">Exportar p/ celular</span> → <b>Salvar pacote em arquivo…</b></li>
+<li>Envie o arquivo .batpack para o celular pelo meio que preferir.</li>
+<li>No celular: Ajustes → <b>Abrir pacote (.batpack)…</b> e selecione o arquivo (o seletor do Android mostra também o Drive e outros serviços instalados).</li></ol>
+<h2>Ableton Link: um aparelho dita o andamento</h2>
+<p>Com o Link, aparelhos na mesma rede Wi-Fi tocam no mesmo andamento e no mesmo tempo, e o Play/Stop de um aciona o outro. Funciona também com outros apps compatíveis com Ableton Link.</p>
+<h3>O celular dita, o notebook segue (ensaio)</h3>
+<ol><li>No celular: Ajustes → <b>Ableton Link: ligado</b>; "Quem dita o andamento": <b>este celular</b>.</li>
+<li>No Windows: ligue <span class="b">Link</span> e <span class="b">Seguir</span>. O botão passa a mostrar "Link 1" (um aparelho encontrado).</li>
+<li>Dê Play no celular: o notebook começa junto e acompanha o andamento, inclusive as rampas.</li></ol>
+<p>Para inverter, deixe <b>Seguir</b> desligado no Windows e escolha "o outro aparelho (seguir)" no celular.</p>
+<div class="box warn">Só um aparelho deve ditar. E lembre: quem segue acompanha o <b>click</b>; trilhas de áudio não mudam de velocidade. Use o Link com VS apenas quando os dois lados estiverem no andamento original das gravações. Use a mesma contagem inicial nos dois aparelhos para que as músicas comecem juntas.</div>
+
+<h1>10. Roteiros prontos</h1>
+<h2>Ensaio só com o celular</h2>
+<ol><li>Tela Músicas → <b>Nova</b> para cada música; ajuste nome, tom e blocos de andamento.</li>
+<li>Ligue o cabo Y: canal L no fone, canal R na caixa.</li>
+<li>Tela Palco: Auto-PAD ligado, Play. Use as setas para trocar de música; o pad muda de tom sozinho.</li></ol>
+<h2>Gig pequena com VS no celular</h2>
+<ol><li>Monte a setlist no Windows com as trilhas e as durações das cenas.</li>
+<li>Exporte para o celular (capítulo 9) e ouça cada música inteira no celular antes do evento.</li>
+<li>No palco: trava ligada, pedal Bluetooth em Play/Stop e Próxima música, balanço entre VS e Guias na tela Mixer.</li></ol>
+<h2>Palco principal no Windows, celular de backup</h2>
+<ol><li>Notebook com a interface ASIO, saídas conforme o capítulo 5.</li>
+<li>Exporte a mesma setlist para o celular e deixe-o ligado ao cabo Y em dois canais reserva da mesa, na mesma música, parado.</li>
+<li>Se o notebook falhar, o técnico abre os canais reserva e você dá Play no celular na música atual.</li></ol>
+<div class="box">O backup recomeça a música do início; ele não assume do ponto em que o notebook parou.</div>
+
+<h1>11. Problemas comuns</h1>
+<table>
+<tr><th style="width:36%">O que acontece</th><th>O que fazer</th></tr>
+<tr><td>Windows: nenhum som</td><td>Abra Áudio/MIDI e confira dispositivo e saídas marcadas. Veja se a saída da trilha não está "(indisp.)" e se o mute não está ligado.</td></tr>
+<tr><td>Windows: estalos ou falhas no som</td><td>Aumente o buffer em Áudio/MIDI (512 ou 1024). Feche outros programas; use ASIO, não o som embutido.</td></tr>
+<tr><td>Windows: não aparece "ASIO" na lista</td><td>Instale o driver ASIO do fabricante da interface e reabra o Batuta.</td></tr>
+<tr><td>Cliquei na cena e ela não entrou na hora</td><td>É o esperado: ela entra no início do próximo compasso.</td></tr>
+<tr><td>O VS vai saindo do tempo do click</td><td>O andamento ou a fórmula no mapa de andamento não corresponde ao da gravação. Ajuste os blocos.</td></tr>
+<tr><td>A setlist abre, mas os clipes não tocam</td><td>Os arquivos de áudio foram movidos ou renomeados. Recoloque-os ou troque o arquivo do clipe.</td></tr>
+<tr><td>Celular: click e VS saem misturados</td><td>O cabo não é um Y estéreo → 2 mono, ou a caixa/fone está somando os canais. Fones Bluetooth e caixas mono não servem para o split.</td></tr>
+<tr><td>Celular não aparece no envio por Wi-Fi</td><td>Confirme a mesma rede e o app aberto; use "Digitar o IP". Redes de visitantes e roteadores com "isolamento de clientes" bloqueiam; use o roteador da banda ou o envio por arquivo.</td></tr>
+<tr><td>Link mostra 0 aparelhos</td><td>Mesma causa acima: mesma rede, sem isolamento. O ponto de acesso (hotspot) do próprio celular costuma funcionar.</td></tr>
+<tr><td>Pedal Bluetooth não aparece</td><td>Pareie por dentro do Batuta (Ajustes), não pela tela de Bluetooth do Android. Confira se o pedal está em modo MIDI.</td></tr>
+<tr><td>Celular: o som atrasa ao tocar os pads</td><td>Saída por fio (P2/USB-C) tem atraso baixo; Bluetooth sempre atrasa.</td></tr>
+</table>
+
+<h1>12. O que esta versão ainda não faz</h1>
+<p>Para você não contar no palco com algo que não existe na versão 0.1:</p>
+<ul>
+<li><b>Plugins VST3 e clipes MIDI</b> ainda não estão disponíveis; chegam em uma versão futura. (Plugins AU não existem no Windows.)</li>
+<li><b>O áudio não é esticado</b> para acompanhar mudanças de andamento. Os clipes tocam sempre na velocidade original.</li>
+<li><b>A ação de seguimento é por cena</b>, não por clipe individual.</li>
+<li><b>Nuvem:</b> não há envio automático para Google Drive ou Dropbox; salve o pacote e envie pelo aplicativo da nuvem.</li>
+<li><b>No celular</b> a música com VS toca do início ao fim, sem disparo por cenas, e não é possível montar VS no próprio aparelho: as trilhas vêm sempre do Windows.</li>
+<li><b>As vozes de contagem e de guia são sintetizadas.</b></li>
+<li>Não há "desfazer". Salve com frequência e guarde cópias da pasta do evento.</li>
+</ul>
+<h2>Referência rápida</h2>
+<table>
+<tr><th>Windows</th><th></th></tr>
+<tr><td style="width:36%">Barra de espaço</td><td>Play / Stop</td></tr>
+<tr><td>Clique na cena / no clipe</td><td>Dispara no próximo compasso</td></tr>
+<tr><td>Botão direito</td><td>Opções da cena, do clipe, da trilha ou do pad</td></tr>
+<tr><td>Dois cliques no fader</td><td>Volta para 0 dB</td></tr>
+<tr><td>Dois cliques na música da setlist</td><td>Renomear</td></tr>
+<tr><th>Android</th><th></th></tr>
+<tr><td>Dois toques em Stop / setas (com trava)</td><td>Confirma a ação durante a execução</td></tr>
+<tr><td>Dois toques em "voltar"</td><td>Sai do app</td></tr>
+</table>
+<p style="color:#666;font-size:9pt;margin-top:14pt">Batuta é software livre (GPLv3). Usa JUCE e Ableton Link. ASIO é marca registrada da Steinberg Media Technologies GmbH.</p>
+</body></html>

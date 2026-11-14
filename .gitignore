@@ -1,0 +1,6 @@
+build/
+third_party/asiosdk/
+Android/Builds/Android/.gradle/
+Android/Builds/Android/app/build/
+Android/Builds/Android/app/.cxx/
+Android/Builds/Android/local.properties

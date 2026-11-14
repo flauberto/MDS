@@ -1,0 +1,51 @@
+name: Build
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - name: Baixar ASIO SDK (Steinberg)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          Invoke-WebRequest -Uri "https://www.steinberg.net/asiosdk" -OutFile asiosdk.zip
+          Expand-Archive asiosdk.zip -DestinationPath asiotmp
+          $dir = Get-ChildItem asiotmp -Directory | Select-Object -First 1
+          Move-Item $dir.FullName third_party/asiosdk
+          Test-Path third_party/asiosdk/common/iasiodrv.h
+      - name: Configurar
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+      - name: Compilar
+        run: cmake --build build --config Release --target Batuta BatutaTest --parallel
+      - name: Testes do motor
+        run: build/BatutaTest_artefacts/Release/BatutaTest.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Batuta-Windows
+          path: build/Batuta_artefacts/Release/Batuta.exe
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Compilar APK
+        working-directory: Android/Builds/Android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease_Release --no-daemon
+      - name: Renomear APK
+        run: |
+          mkdir out
+          cp "$(find Android/Builds/Android/app/build/outputs/apk -name '*.apk' | head -1)" out/Batuta.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Batuta-Android
+          path: out/Batuta.apk

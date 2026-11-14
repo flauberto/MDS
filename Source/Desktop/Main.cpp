@@ -566,7 +566,8 @@ private:
             else if (r == 2)
             {
                 setStatus (U ("Procurando celulares na rede\xe2\x80\xa6"));
-                Thread::launch ([safe = Component::SafePointer<MainComponent> (this)]
+                Component::SafePointer<MainComponent> safe (this);
+                Thread::launch ([safe]
                 {
                     auto peers = bt::discoverPeers();
                     MessageManager::callAsync ([safe, peers] { if (safe != nullptr) safe->choosePeer (peers); });
@@ -593,7 +594,8 @@ private:
         if (exporting) return;
         exporting = true; exportB.setEnabled (false);
         auto project = app.engine.project;
-        Thread::launch ([safe = Component::SafePointer<MainComponent> (this), project, dest, ip]
+        Component::SafePointer<MainComponent> safe (this);
+        Thread::launch ([safe, project, dest, ip]
         {
             auto say = [safe] (String s) { MessageManager::callAsync ([safe, s] { if (safe != nullptr) safe->setStatus (s); }); };
             auto res = bt::exportPack (project, dest, [say] (float p, String s) { say (String ((int) (p * 100)) + "%  " + s); });

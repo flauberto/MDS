@@ -5,7 +5,7 @@ def ndkVersionString = "28.1.13356709"
 android {
     compileSdk 34
     ndkVersion ndkVersionString
-    namespace "com.batuta.mobile"
+    namespace "com.mds.mobile"
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.batuta.mobile"
+        applicationId "com.mds.mobile"
         minSdkVersion    24
         targetSdkVersion 34
         externalNativeBuild {

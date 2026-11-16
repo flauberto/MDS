@@ -1,4 +1,4 @@
-// Batuta - sons sintetizados (click, one-shots embutidos) e banco de amostras
+// MDS - sons sintetizados (click, one-shots embutidos) e banco de amostras
 #pragma once
 #include "Model.h"
 #include <cmath>

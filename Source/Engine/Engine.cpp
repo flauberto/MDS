@@ -113,7 +113,7 @@ Engine::Engine (bool offlineMode) : offline (offlineMode)
     for (auto& a : uiPadFlash) a = 0;
     if (! offline)
     {
-        ioThread.reset (new TimeSliceThread ("Batuta leitura de disco"));
+        ioThread.reset (new TimeSliceThread ("MDS leitura de disco"));
         ioThread->startThread (Thread::Priority::high);
         link.reset (new LinkHolder());
         link->link.enableStartStopSync (true);
@@ -622,7 +622,11 @@ void Engine::process (float* const* out, int numOut, int n)
                 if (tick % rt.subdiv == 0)
                 {
                     const int pulse = tick / rt.subdiv;
-                    if (rt.clickOn) fire (pulse == 0 ? sClickAccent : sClickBeat, busClick, i);
+                    if (rt.clickOn)
+                    {
+                        const int lvl = rt.tempo[(size_t) jlimit (0, (int) rt.tempo.size() - 1, blockIdx)].level (pulse);
+                        if (lvl > 0) fire (lvl == 3 ? sClickAccent : sClickBeat, busClick, i, lvl == 1 ? 0.4f : 1.0f);
+                    }
                     if ((rt.voiceMode == 2 || (rt.voiceMode == 1 && barNum < 0)) && pulse < 12) fire (sVoiceNum + pulse, busVoice, i);
                     uiBeatInBar = pulse;
                 }

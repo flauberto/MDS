@@ -1,4 +1,4 @@
-// Batuta - modelo de dados do projeto (setlist, musicas, cenas, trilhas)
+// MDS - modelo de dados do projeto (setlist, musicas, cenas, trilhas)
 #pragma once
 #include <JuceHeader.h>
 #include <vector>
@@ -11,6 +11,13 @@ struct TempoBlock
 {
     int bars = 8, num = 4, den = 4;
     double bpm0 = 120.0, bpm1 = 120.0;   // rampa linear de bpm0 ate bpm1 ao longo do bloco
+    String pattern;                      // padrao do click, um caractere por tempo: 3 forte, 2 normal, 1 fraco, 0 mudo
+    int level (int pulse) const
+    {
+        if (pulse >= 0 && pulse < pattern.length()) return juce::jlimit (0, 3, (int) (pattern[pulse] - '0'));
+        return pulse == 0 ? 3 : 2;
+    }
+    String fullPattern() const { String p; for (int i = 0; i < num; ++i) p << String (level (i)); return p; }
     double barBeats() const { return num * 4.0 / den; }
     double beats() const { return bars * barBeats(); }
 };

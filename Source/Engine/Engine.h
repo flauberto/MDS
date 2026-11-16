@@ -1,4 +1,4 @@
-// Batuta - motor de audio compartilhado entre Windows e Android
+// MDS - motor de audio compartilhado entre Windows e Android
 #pragma once
 #include "Model.h"
 #include "Sounds.h"

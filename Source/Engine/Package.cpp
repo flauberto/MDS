@@ -44,7 +44,7 @@ static bool renderSong (const Project& project, int songIdx, const File& out, in
 
 PackResult exportPack (const Project& project, const File& dest, std::function<void (float, String)> progress)
 {
-    auto tmp = File::getSpecialLocation (File::tempDirectory).getChildFile ("batuta_pack_" + String::toHexString (Random::getSystemRandom().nextInt()));
+    auto tmp = File::getSpecialLocation (File::tempDirectory).getChildFile ("mds_pack_" + String::toHexString (Random::getSystemRandom().nextInt()));
     tmp.createDirectory();
     tmp.getChildFile ("audio").createDirectory();
     struct Cleanup { File d; ~Cleanup() { d.deleteRecursively(); } } cleanup { tmp };
@@ -115,7 +115,7 @@ PackResult importPack (const File& pack, const File& libraryDir, File& projectFi
 {
     ZipFile zip (pack);
     if (zip.getNumEntries() == 0 || zip.getIndexOfFileName ("project.json") < 0)
-        return { false, String::fromUTF8 ("Arquivo inv\xc3\xa1lido: n\xc3\xa3o \xc3\xa9 um pacote do Batuta.") };
+        return { false, String::fromUTF8 ("Arquivo inv\xc3\xa1lido: n\xc3\xa3o \xc3\xa9 um pacote do MDS.") };
     auto dir = libraryDir.getChildFile (File::createLegalFileName (pack.getFileNameWithoutExtension()));
     dir.deleteRecursively();
     dir.createDirectory();
@@ -188,7 +188,7 @@ PackResult sendPack (const String& ip, const File& pack, std::function<void (flo
 
 struct PackReceiver::Responder : public Thread
 {
-    Responder (String n) : Thread ("Batuta descoberta"), name (std::move (n)) { startThread(); }
+    Responder (String n) : Thread ("MDS descoberta"), name (std::move (n)) { startThread(); }
     ~Responder() override { signalThreadShouldExit(); sock.shutdown(); stopThread (1500); }
     void run() override
     {
@@ -209,7 +209,7 @@ struct PackReceiver::Responder : public Thread
     String name;
 };
 
-PackReceiver::PackReceiver (String deviceName, File tempDir) : Thread ("Batuta recepcao"), name (std::move (deviceName)), dir (std::move (tempDir))
+PackReceiver::PackReceiver (String deviceName, File tempDir) : Thread ("MDS recepcao"), name (std::move (deviceName)), dir (std::move (tempDir))
 {
     responder.reset (new Responder (name));
     startThread();

@@ -87,7 +87,7 @@ var Project::toVar() const
         var sv = obj();
         set (sv, "name", s.name); set (sv, "countIn", s.countInBars); set (sv, "subdiv", s.subdiv); set (sv, "padKey", s.padKey);
         Array<var> ta;
-        for (auto& b : s.tempo) { var t = obj(); set (t, "bars", b.bars); set (t, "num", b.num); set (t, "den", b.den); set (t, "bpm0", b.bpm0); set (t, "bpm1", b.bpm1); ta.add (t); }
+        for (auto& b : s.tempo) { var t = obj(); set (t, "bars", b.bars); set (t, "num", b.num); set (t, "den", b.den); set (t, "bpm0", b.bpm0); set (t, "bpm1", b.bpm1); set (t, "pattern", b.pattern); ta.add (t); }
         set (sv, "tempo", ta);
         Array<var> tr;
         for (auto& t : s.tracks) { var x = obj(); set (x, "name", t.name); set (x, "cue", t.isCue); set (x, "outL", t.outL); set (x, "outR", t.outR); set (x, "gain", t.gainDb); set (x, "mute", t.mute); tr.add (x); }
@@ -136,7 +136,7 @@ Project Project::fromVar (const var& p)
         {
             TempoBlock b; b.bars = jmax (1, get (t, "bars", 8)); b.num = jlimit (1, 32, get (t, "num", 4)); b.den = get (t, "den", 4);
             if (b.den != 2 && b.den != 4 && b.den != 8 && b.den != 16) b.den = 4;
-            b.bpm0 = jlimit (20.0, 400.0, get (t, "bpm0", 120.0)); b.bpm1 = jlimit (20.0, 400.0, get (t, "bpm1", b.bpm0));
+            b.bpm0 = jlimit (20.0, 400.0, get (t, "bpm0", 120.0)); b.bpm1 = jlimit (20.0, 400.0, get (t, "bpm1", b.bpm0)); b.pattern = getS (t, "pattern").retainCharacters ("0123");
             s.tempo.push_back (b);
         }
         for (auto& x : arr (sv, "tracks"))

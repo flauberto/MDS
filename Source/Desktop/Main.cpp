@@ -1,4 +1,4 @@
-// Batuta (Windows) - central de producao e palco: sessao por cenas, mixer, roteamento
+// MDS (Windows) - central de producao e palco: sessao por cenas, mixer, roteamento
 #include "Panels.h"
 
 namespace desk
@@ -12,7 +12,7 @@ static StringArray followNames() { return { "Nenhuma", U ("Pr\xc3\xb3xima cena")
 class SessionView : public Component, public FileDragAndDropTarget
 {
 public:
-    static constexpr int sceneW = 176, colW = 116, rowH = 38, headH = 30;
+    static constexpr int sceneW = 172, colW = 112, rowH = 28, headH = 26;
     explicit SessionView (App& a) : app (a) {}
 
     int idealWidth() const  { return sceneW + ((int) app.song().tracks.size() + 1) * colW + 8; }
@@ -21,78 +21,82 @@ public:
     Rectangle<int> cellRect (int scene, int track) const { return { sceneW + track * colW, headH + scene * rowH, colW, rowH }; }
     Rectangle<int> sceneRect (int scene) const { return { 0, headH + scene * rowH, sceneW, rowH }; }
 
+    static Colour trackColour (const bt::Song& s, int t) { return s.tracks[(size_t) t].isCue ? col::cue : col::track (t); }
+
     void paint (Graphics& g) override
     {
         auto& s = app.song(); auto& e = app.engine;
         const int nT = (int) s.tracks.size(), nS = (int) s.scenes.size();
         const bool blink = (Time::getMillisecondCounter() / 220) % 2 == 0;
+        const Colour slot (0xff1d1f23), well (0xff0e0f11);
         g.fillAll (col::bg);
 
-        g.setFont (FontOptions (12.0f, Font::bold)); g.setColour (col::dim);
-        g.drawText ("CENAS", 10, 0, sceneW, headH, Justification::centredLeft);
+        g.setFont (FontOptions (10.5f, Font::bold)); g.setColour (col::dim);
+        g.drawText ("CENAS", 8, 0, sceneW, headH, Justification::centredLeft);
         for (int t = 0; t < nT; ++t)
         {
-            auto r = Rectangle<int> (sceneW + t * colW, 0, colW, headH).reduced (2);
+            auto r = Rectangle<int> (sceneW + t * colW, 0, colW - 1, headH - 1);
             auto& tr = s.tracks[(size_t) t];
-            g.setColour (tr.isCue ? col::cue.withAlpha (0.35f) : col::raised); g.fillRoundedRectangle (r.toFloat(), 4.0f);
-            g.setColour (col::text); g.setFont (FontOptions (14.0f, Font::bold));
-            g.drawFittedText (tr.name, r.reduced (6, 0).withTrimmedRight (tr.isCue ? 34 : 0), Justification::centredLeft, 1);
-            if (tr.isCue) { g.setColour (col::cue); g.setFont (FontOptions (10.0f, Font::bold)); g.drawText ("GUIA", r.reduced (5, 0), Justification::centredRight); }
+            g.setColour (col::panel); g.fillRect (r);
+            g.setColour (trackColour (s, t)); g.fillRect (r.removeFromTop (3));
+            if (tr.isCue) { g.setFont (FontOptions (9.5f, Font::bold)); g.drawText ("GUIA", r.removeFromRight (34).reduced (4, 0), Justification::centredRight); }
+            g.setColour (col::text); g.setFont (FontOptions (12.5f, Font::bold));
+            g.drawFittedText (tr.name, r.reduced (7, 0), Justification::centredLeft, 1);
         }
         {
-            auto r = Rectangle<int> (sceneW + nT * colW, 0, colW, headH).reduced (2);
-            g.setColour (col::line); g.drawRoundedRectangle (r.toFloat(), 4.0f, 1.0f);
-            drawIcon (g, Icon::plus, r.removeFromLeft (26).toFloat().reduced (8), col::dim);
-            g.setColour (col::dim); g.setFont (FontOptions (13.0f)); g.drawText ("Trilha", r, Justification::centredLeft);
+            auto r = Rectangle<int> (sceneW + nT * colW, 0, colW - 1, headH - 1);
+            drawIcon (g, Icon::plus, r.removeFromLeft (24).toFloat().reduced (8), col::dim);
+            g.setColour (col::dim); g.setFont (FontOptions (12.0f)); g.drawText ("Trilha", r, Justification::centredLeft);
         }
 
         const int cur = e.uiScene.load(), queued = e.uiQueuedScene.load();
         for (int i = 0; i < nS; ++i)
         {
             auto& sc = s.scenes[(size_t) i];
-            auto r = sceneRect (i).reduced (2);
+            auto r = sceneRect (i).withTrimmedRight (1).withTrimmedBottom (1);
             const bool isCur = i == cur, isQ = i == queued;
-            g.setColour (isCur ? col::play.withAlpha (0.28f) : col::panel); g.fillRoundedRectangle (r.toFloat(), 4.0f);
+            g.setColour (isCur ? col::raised : col::panel); g.fillRect (r);
             if (isCur && sc.bars > 0)
             {
-                g.setColour (col::play.withAlpha (0.35f));
-                g.fillRoundedRectangle (r.toFloat().withWidth (r.getWidth() * jlimit (0.0f, 1.0f, (float) (e.uiSceneBar.load() + 1) / (float) sc.bars)), 4.0f);
+                g.setColour (col::play);
+                g.fillRect (r.getX(), r.getBottom() - 2, (int) (r.getWidth() * jlimit (0.0f, 1.0f, (float) (e.uiSceneBar.load() + 1) / (float) sc.bars)), 2);
             }
-            auto ic = r.removeFromLeft (rowH - 4).toFloat().reduced (10);
-            drawIcon (g, Icon::play, ic, isQ ? (blink ? col::queued : col::dim) : (isCur ? col::play : col::text));
-            auto info = r.removeFromRight (58);
-            g.setColour (col::dim); g.setFont (FontOptions (12.0f));
-            g.drawText (String (sc.bars) + " c " + U (followGlyph[jlimit (0, 4, sc.follow)]), info.reduced (4, 0), Justification::centredRight);
-            g.setColour (col::text); g.setFont (FontOptions (15.0f, Font::bold));
-            g.drawFittedText (sc.name, r.reduced (2, 0), Justification::centredLeft, 1);
+            auto btn = r.removeFromLeft (rowH - 1);
+            g.setColour (isCur ? col::play : (isQ && blink ? col::queued : well)); g.fillRect (btn);
+            drawIcon (g, Icon::play, btn.toFloat().reduced (8.5f), isCur || (isQ && blink) ? well : col::text);
+            auto info = r.removeFromRight (50);
+            g.setColour (col::dim); g.setFont (FontOptions (11.0f));
+            g.drawText (String (sc.bars) + " c " + U (followGlyph[jlimit (0, 4, sc.follow)]), info.reduced (5, 0), Justification::centredRight);
+            g.setColour (col::text); g.setFont (FontOptions (13.0f, isCur ? Font::bold : Font::plain));
+            g.drawFittedText (sc.name, r.reduced (7, 0), Justification::centredLeft, 1);
 
             for (int t = 0; t < nT; ++t)
             {
-                auto c = cellRect (i, t).reduced (2);
+                auto c = cellRect (i, t).withTrimmedRight (1).withTrimmedBottom (1);
                 auto& clip = s.clips[(size_t) i][(size_t) t];
                 const bool playingHere = t < 64 && e.uiTrackClip[t].load() == i;
                 const bool queuedHere = (t < 64 && e.uiTrackQueued[t].load() == i) || (isQ && ! clip.empty());
-                if (clip.empty()) { g.setColour (col::panel.darker (0.25f)); g.fillRoundedRectangle (c.toFloat(), 4.0f); continue; }
-                g.setColour (playingHere ? col::play : (s.tracks[(size_t) t].isCue ? col::cue.withAlpha (0.55f) : col::raised.brighter (0.12f)));
-                g.fillRoundedRectangle (c.toFloat(), 4.0f);
-                const Colour fg = playingHere ? col::bg : col::text;
-                drawIcon (g, Icon::play, c.removeFromLeft (26).toFloat().reduced (8), queuedHere && ! playingHere ? (blink ? col::queued : col::dim) : fg);
-                if (clip.loop) drawIcon (g, Icon::loop, c.removeFromRight (20).toFloat().reduced (4), fg);
-                g.setColour (fg); g.setFont (FontOptions (13.0f));
-                g.drawFittedText (File (clip.file).getFileNameWithoutExtension(), c.reduced (2, 0), Justification::centredLeft, 1);
+                if (clip.empty()) { g.setColour (slot); g.fillRect (c); continue; }
+                const Colour tc = trackColour (s, t);
+                g.setColour (playingHere ? tc : tc.withMultipliedSaturation (0.75f).withMultipliedBrightness (0.72f)); g.fillRect (c);
+                auto lb = c.removeFromLeft (22);
+                g.setColour (well.withAlpha (0.55f)); g.fillRect (lb);
+                drawIcon (g, Icon::play, lb.toFloat().reduced (6.5f), playingHere ? col::play : (queuedHere && blink ? col::queued : Colours::white.withAlpha (0.8f)));
+                if (clip.loop) drawIcon (g, Icon::loop, c.removeFromRight (18).toFloat().reduced (4), well);
+                g.setColour (well); g.setFont (FontOptions (12.0f, playingHere ? Font::bold : Font::plain));
+                g.drawFittedText (File (clip.file).getFileNameWithoutExtension(), c.reduced (5, 0), Justification::centredLeft, 1);
             }
         }
         // linha final: + Cena e botoes de parada por trilha
-        auto add = sceneRect (nS).reduced (2);
-        g.setColour (col::line); g.drawRoundedRectangle (add.toFloat(), 4.0f, 1.0f);
-        drawIcon (g, Icon::plus, add.removeFromLeft (rowH - 4).toFloat().reduced (11), col::dim);
-        g.setColour (col::dim); g.setFont (FontOptions (13.0f)); g.drawText ("Cena", add, Justification::centredLeft);
+        auto add = sceneRect (nS).withTrimmedRight (1);
+        drawIcon (g, Icon::plus, add.removeFromLeft (rowH - 1).toFloat().reduced (9.5f), col::dim);
+        g.setColour (col::dim); g.setFont (FontOptions (12.0f)); g.drawText ("Cena", add.reduced (7, 0), Justification::centredLeft);
         for (int t = 0; t < nT; ++t)
         {
-            auto c = cellRect (nS, t).reduced (2);
-            g.setColour (col::panel); g.fillRoundedRectangle (c.toFloat(), 4.0f);
+            auto c = cellRect (nS, t).withTrimmedRight (1).withTrimmedBottom (1);
+            g.setColour (col::panel); g.fillRect (c);
             const bool active = t < 64 && e.uiTrackClip[t].load() >= 0;
-            drawIcon (g, Icon::stop, c.toFloat().withSizeKeepingCentre (13, 13), active ? col::stop : col::dim);
+            drawIcon (g, Icon::stop, c.toFloat().withSizeKeepingCentre (10, 10), active ? col::stop : col::dim.withAlpha (0.6f));
         }
     }
 
@@ -304,16 +308,20 @@ class MainComponent : public Component, private Timer
 {
 public:
     explicit MainComponent (App& a) : app (a), session (a), setlist (a), tempo (a), pads (a), click (a),
-                                      midi (a.engine, [&a] { a.dirty = true; }, false), midiConnect (a.dm, a.engine)
+                                      midi (a.engine, [&a] { a.dirty = true; }, false, 26), midiConnect (a.dm, a.engine)
     {
-        setLookAndFeel (&look);
+        setLookAndFeel (&look); LookAndFeel::setDefaultLookAndFeel (&look);
         setWantsKeyboardFocus (true);
-        for (Component* c : std::initializer_list<Component*> { &fileB, &playB, &stopB, &clickB, &linkB, &followB, &audioB, &exportB, &setlist, &viewport, &tabs, &status })
+        for (Component* c : std::initializer_list<Component*> { &fileB, &optB, &helpB, &playB, &stopB, &clickB, &linkB, &followB, &exportB, &deviceB, &setlist, &viewport, &tabs, &status })
             addAndMakeVisible (c);
+        for (auto* m : { &fileB, &optB, &helpB, &deviceB }) { m->setColour (TextButton::buttonColourId, Colours::transparentBlack); m->setColour (TextButton::textColourOffId, col::text); }
+        deviceB.setColour (TextButton::textColourOffId, col::dim);
+        deviceB.setTooltip (U ("Dispositivo de \xc3\xa1udio em uso. Clique para escolher driver (ASIO), interface, sa\xc3\xad" "das, taxa e buffer."));
         playB.colour = col::play; stopB.colour = col::stop; clickB.colour = col::accent;
         playB.setTooltip (U ("Tocar (barra de espa\xc3\xa7o)")); stopB.setTooltip ("Parar"); clickB.setTooltip (U ("Metr\xc3\xb4nomo ligado/desligado"));
         linkB.setTooltip (U ("Ableton Link: sincroniza andamento e play/stop com outros aparelhos na mesma rede"));
         followB.setTooltip (U ("Seguir: este computador obedece o andamento do Link (o celular dita). Desligado: este computador dita."));
+        exportB.setTooltip (U ("Empacotar a setlist e enviar para o MDS no celular"));
         linkB.setClickingTogglesState (true); followB.setClickingTogglesState (true);
         linkB.setColour (TextButton::buttonOnColourId, col::link); followB.setColour (TextButton::buttonOnColourId, col::link);
         playB.onClick = [this] { app.engine.play(); };
@@ -321,17 +329,22 @@ public:
         clickB.onClick = [this] { app.engine.project.clickOn = ! app.engine.project.clickOn; app.changed (false); };
         linkB.onClick = [this] { app.engine.setLinkEnabled (linkB.getToggleState()); };
         followB.onClick = [this] { app.engine.setLinkFollow (followB.getToggleState()); };
-        audioB.onClick = [this] { showAudioSettings(); };
+        deviceB.onClick = [this] { showAudioSettings(); };
         exportB.onClick = [this] { exportMenu(); };
         fileB.onClick = [this] { fileMenu(); };
+        optB.onClick = [this] { optionsMenu(); };
+        helpB.onClick = [this] { about(); };
         status.setColour (Label::textColourId, col::dim); status.setJustificationType (Justification::centredRight);
+        status.setFont (FontOptions (12.0f));
 
         viewport.setViewedComponent (&session, false);
         viewport.setScrollBarsShown (true, true);
-        tabs.setTabBarDepth (30);
-        tabs.addTab ("Andamento", col::panel, &tempo, false);
+        viewport.setScrollBarThickness (10);
+        tabs.setTabBarDepth (26);
+        tabs.setOutline (0);
+        tabs.addTab ("Andamento e click", col::panel, &tempo, false);
         tabs.addTab ("Pads e Auto-PAD", col::panel, &pads, false);
-        tabs.addTab ("Click e voz", col::panel, &click, false);
+        tabs.addTab ("Sons e voz", col::panel, &click, false);
         tabs.addTab ("MIDI", col::panel, &midi, false);
 
         const char* busNames[bt::numBuses] = { "Click", "Subdiv.", "Voz", "Auto-PAD", "One-shots" };
@@ -347,7 +360,7 @@ public:
         startTimerHz (30);
         setSize (1360, 820);
     }
-    ~MainComponent() override { app.refreshAll = nullptr; app.engine.onUiAction = nullptr; setLookAndFeel (nullptr); }
+    ~MainComponent() override { app.refreshAll = nullptr; app.engine.onUiAction = nullptr; LookAndFeel::setDefaultLookAndFeel (nullptr); setLookAndFeel (nullptr); }
 
     void rebuild()
     {
@@ -358,7 +371,7 @@ public:
         for (int t = 0; t < (int) s.tracks.size(); ++t)
         {
             auto& tr = s.tracks[(size_t) t];
-            auto* st = trackStrips.add (new Strip (tr.name, tr.isCue ? col::cue : col::play));
+            auto* st = trackStrips.add (new Strip (tr.name, SessionView::trackColour (s, t)));
             addAndMakeVisible (st);
             st->fader.setValue (tr.gainDb, dontSendNotification); st->mute.setToggleState (tr.mute, dontSendNotification);
             fillOutputs (st->out, nOut, tr.outL, tr.outR);
@@ -370,33 +383,40 @@ public:
             st->fader.setValue (bus.gainDb, dontSendNotification); st->mute.setToggleState (bus.mute, dontSendNotification);
             fillOutputs (st->out, nOut, bus.outL, bus.outR);
         }
-        session.setSize (jmax (session.idealWidth(), viewport.getWidth() - 12), jmax (session.idealHeight(), viewport.getHeight() - 12));
         setlist.refresh(); tempo.toControls(); pads.refresh(); click.refresh(); midi.refresh();
         building = false; shownOuts = nOut;
         resized(); repaint();
     }
 
+    static constexpr int topH = 46, statusH = 24, busW = 80;
+
     void resized() override
     {
         auto r = getLocalBounds();
-        auto top = r.removeFromTop (56).reduced (8, 8);
-        fileB.setBounds (top.removeFromLeft (96)); top.removeFromLeft (14);
-        playB.setBounds (top.removeFromLeft (52)); top.removeFromLeft (4); stopB.setBounds (top.removeFromLeft (52)); top.removeFromLeft (14);
-        display = top.removeFromLeft (330); top.removeFromLeft (14);
-        clickB.setBounds (top.removeFromLeft (44)); top.removeFromLeft (14);
-        linkB.setBounds (top.removeFromLeft (84)); top.removeFromLeft (4); followB.setBounds (top.removeFromLeft (84)); top.removeFromLeft (14);
-        exportB.setBounds (top.removeFromRight (190)); top.removeFromRight (6); audioB.setBounds (top.removeFromRight (130)); top.removeFromRight (8);
-        status.setBounds (top);
+        auto top = r.removeFromTop (topH).reduced (8, 7);
+        logoArea = top.removeFromLeft (92); top.removeFromLeft (6);
+        fileB.setBounds (top.removeFromLeft (66)); optB.setBounds (top.removeFromLeft (64)); helpB.setBounds (top.removeFromLeft (54)); top.removeFromLeft (14);
+        playB.setBounds (top.removeFromLeft (44)); top.removeFromLeft (3); stopB.setBounds (top.removeFromLeft (44)); top.removeFromLeft (10);
+        display = top.removeFromLeft (318); top.removeFromLeft (10);
+        clickB.setBounds (top.removeFromLeft (36)); top.removeFromLeft (10);
+        linkB.setBounds (top.removeFromLeft (70)); top.removeFromLeft (3); followB.setBounds (top.removeFromLeft (66));
+        exportB.setBounds (top.removeFromRight (jmin (176, jmax (40, top.getWidth() - 8))));
 
-        tabs.setBounds (r.removeFromBottom (230));
-        setlist.setBounds (r.removeFromLeft (190));
-        auto buses = r.removeFromRight (bt::numBuses * 78 + 12).reduced (4);
-        auto mixRow = r.removeFromBottom (214);
-        buses.removeFromTop (22);
-        for (auto* s : busStrips) s->setBounds (buses.removeFromLeft (78).removeFromBottom (214 + 0).reduced (1));
-        viewport.setBounds (r.reduced (4));
+        auto st = r.removeFromBottom (statusH);
+        deviceB.setBounds (st.removeFromLeft (jmin (560, st.getWidth() / 2)).reduced (4, 2));
+        cpuArea = st.removeFromRight (84);
+        status.setBounds (st.reduced (6, 0));
+
+        const int h = getHeight();
+        tabs.setBounds (r.removeFromBottom (jlimit (186, 250, (int) (h * 0.29f))));
+        setlist.setBounds (r.removeFromLeft (184));
+        const int mixH = jlimit (150, 212, (int) (h * 0.25f));
+        auto buses = r.removeFromRight (bt::numBuses * busW + 1);
+        busHeader = buses.removeFromTop (buses.getHeight() - mixH);
+        for (auto* s : busStrips) s->setBounds (buses.removeFromLeft (busW));
+        mixArea = r.removeFromBottom (mixH);
+        viewport.setBounds (r);
         session.setSize (jmax (session.idealWidth(), viewport.getWidth() - 12), jmax (session.idealHeight(), viewport.getHeight() - 12));
-        mixArea = mixRow;
         layoutStrips();
     }
     void layoutStrips()
@@ -404,43 +424,65 @@ public:
         const int x0 = viewport.getX() + SessionView::sceneW - viewport.getViewPositionX();
         for (int t = 0; t < trackStrips.size(); ++t)
         {
-            auto b = Rectangle<int> (x0 + t * SessionView::colW, mixArea.getY(), SessionView::colW, mixArea.getHeight()).reduced (2, 1);
+            auto b = Rectangle<int> (x0 + t * SessionView::colW, mixArea.getY(), SessionView::colW, mixArea.getHeight());
             trackStrips[t]->setBounds (b);
-            trackStrips[t]->setVisible (b.getX() >= viewport.getX() && b.getRight() <= viewport.getRight() + 4);
+            trackStrips[t]->setVisible (b.getX() >= viewport.getX() + SessionView::sceneW - 2 && b.getRight() <= viewport.getRight() + 2);
         }
     }
 
     void paint (Graphics& g) override
     {
         g.fillAll (col::bg);
-        g.setColour (col::panel); g.fillRect (0, 0, getWidth(), 56);
+        g.setColour (col::panel); g.fillRect (0, 0, getWidth(), topH);
+        g.setColour (Colour (0xff0e0f11)); g.fillRect (0, topH - 1, getWidth(), 1);
+        g.setColour (col::panel); g.fillRect (0, getHeight() - statusH, getWidth(), statusH);
+        g.setColour (Colour (0xff0e0f11)); g.fillRect (0, getHeight() - statusH, getWidth(), 1);
+
+        auto lg = logoArea;
+        drawLogo (g, lg.removeFromLeft (lg.getHeight()).toFloat());
+        g.setColour (col::text); g.setFont (FontOptions (19.0f, Font::bold)); g.drawText ("MDS", lg.withTrimmedLeft (8), Justification::centredLeft);
+
         // visor de transporte
         auto d = display;
-        g.setColour (col::bg); g.fillRoundedRectangle (d.toFloat(), 6.0f);
+        g.setColour (Colour (0xff0e0f11)); g.fillRoundedRectangle (d.toFloat(), radius);
+        g.setColour (col::line); g.drawRoundedRectangle (d.toFloat().reduced (0.5f), radius, 1.0f);
         auto& e = app.engine;
         const bool playing = e.playing.load(); const int bar = e.uiBar.load();
         auto cellD = [&] (int w, const String& label, const String& value, Colour c)
         {
             auto x = d.removeFromLeft (w);
-            g.setColour (col::dim); g.setFont (FontOptions (10.0f, Font::bold)); g.drawText (label, x.removeFromTop (14).reduced (8, 0), Justification::bottomLeft);
-            g.setColour (c); g.setFont (FontOptions (Font::getDefaultMonospacedFontName(), 21.0f, Font::bold)); g.drawText (value, x.reduced (8, 0), Justification::centredLeft);
+            g.setColour (col::dim); g.setFont (FontOptions (9.0f, Font::bold)); g.drawText (label, x.removeFromTop (12).reduced (8, 0), Justification::bottomLeft);
+            g.setColour (c); g.setFont (FontOptions (Font::getDefaultMonospacedFontName(), 18.0f, Font::bold)); g.drawText (value, x.reduced (8, 0), Justification::centredLeft);
+            g.setColour (col::line); g.fillRect (x.getRight() - 1, display.getY() + 6, 1, display.getHeight() - 12);
         };
-        cellD (92, "BPM", String (e.uiBpm.load(), 1), col::accent);
-        cellD (70, U ("F\xc3\x93RMULA"), String (e.uiNum.load()) + "/" + String (e.uiDen.load()), col::text);
-        cellD (96, "COMPASSO", playing ? (bar < 0 ? "-" + String (-bar) : String (bar + 1)) + "." + String (e.uiBeatInBar.load() + 1) : U ("\xe2\x80\x94"), bar < 0 && playing ? col::queued : col::text);
+        cellD (84, "BPM", String (e.uiBpm.load(), 1), col::accent);
+        cellD (66, U ("F\xc3\x93RMULA"), String (e.uiNum.load()) + "/" + String (e.uiDen.load()), col::text);
+        cellD (92, "COMPASSO", playing ? (bar < 0 ? "-" + String (-bar) : String (bar + 1)) + "." + String (e.uiBeatInBar.load() + 1) : U ("\xe2\x80\x94"), bar < 0 && playing ? col::queued : col::text);
         const int num = jlimit (1, 16, e.uiNum.load());
+        const float lw = jmin (12.0f, (float) (d.getWidth() - 12) / (float) num);
         for (int i = 0; i < num; ++i)
         {
-            auto led = Rectangle<float> ((float) d.getX() + 4 + i * (jmin (14.0f, 66.0f / num)), (float) d.getCentreY() - 5, jmin (10.0f, 60.0f / num), 10.0f);
+            auto led = Rectangle<float> ((float) d.getX() + 7 + i * lw, (float) d.getCentreY() - 4, jmax (3.0f, lw - 3.0f), 8.0f);
             const bool on = playing && i == e.uiBeatInBar.load();
-            g.setColour (on ? (i == 0 ? col::accent : col::play) : col::line); g.fillEllipse (led);
+            g.setColour (on ? (i == 0 ? col::accent : col::play) : col::line); g.fillRoundedRectangle (led, 1.5f);
         }
-        g.setColour (col::dim); g.setFont (FontOptions (12.0f, Font::bold));
-        g.drawText ("TRILHAS", mixArea.getX() + 8, mixArea.getY() + 4, 170, 16, Justification::left);
+
+        // rotulos das areas de mixer
+        g.setColour (col::panel); g.fillRect (mixArea.withWidth (SessionView::sceneW - 1));
+        g.setColour (col::dim); g.setFont (FontOptions (10.5f, Font::bold));
+        g.drawText ("MIXER DAS TRILHAS", mixArea.getX() + 8, mixArea.getY() + 6, 160, 14, Justification::left);
         g.setFont (FontOptions (11.0f));
-        g.drawFittedText (U ("Fader, mute e sa\xc3\xad" "da f\xc3\xadsica de cada trilha. Arraste arquivos de \xc3\xa1udio para a grade para criar clipes."), mixArea.getX() + 8, mixArea.getY() + 24, 170, 90, Justification::topLeft, 6);
-        auto bl = busStrips[0]->getBounds();
-        g.setFont (FontOptions (12.0f, Font::bold)); g.drawText (U ("CLICK, VOZ E EFEITOS"), bl.getX() + 4, bl.getY() - 20, 300, 16, Justification::left);
+        g.drawFittedText (U ("Volume, mute e sa\xc3\xad" "da f\xc3\xadsica de cada trilha.\n\nArraste arquivos de \xc3\xa1udio para a grade para criar clipes; bot\xc3\xa3o direito abre as op\xc3\xa7\xc3\xb5" "es."),
+                          mixArea.getX() + 8, mixArea.getY() + 26, SessionView::sceneW - 18, mixArea.getHeight() - 30, Justification::topLeft, 8);
+        g.setColour (col::panel); g.fillRect (busHeader.withTop (busHeader.getBottom() - 22));
+        g.setColour (col::dim); g.setFont (FontOptions (10.5f, Font::bold));
+        g.drawText (U ("CLICK, VOZ E EFEITOS"), busStrips[0]->getX() + 8, busStrips[0]->getY() - 22, 300, 22, Justification::centredLeft);
+        g.setColour (col::line); g.fillRect (busStrips[0]->getX() - 1, viewport.getY(), 1, busStrips[0]->getBottom() - viewport.getY());
+
+        g.setColour (hasDevice ? col::dim : col::stop); g.setFont (FontOptions (12.0f));
+        g.drawText (deviceText, deviceB.getBounds().reduced (6, 0), Justification::centredLeft);
+        g.setColour (col::dim); g.setFont (FontOptions (11.5f));
+        g.drawText ("CPU " + String (roundToInt (app.dm.getCpuUsage() * 100.0)) + "%", cpuArea.reduced (8, 0), Justification::centredRight);
     }
 
     bool keyPressed (const KeyPress& k) override
@@ -453,11 +495,11 @@ public:
     {
         if (as || app.projectFile == File())
         {
-            chooser.reset (new FileChooser ("Salvar setlist", app.projectFile, "*.batuta"));
+            chooser.reset (new FileChooser ("Salvar setlist", app.projectFile, "*.mds"));
             chooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting, [this] (const FileChooser& fc)
             {
                 auto f = fc.getResult(); if (f == File()) return;
-                app.projectFile = f.withFileExtension ("batuta"); save (false);
+                app.projectFile = f.withFileExtension ("mds"); save (false);
             });
             return false;
         }
@@ -483,6 +525,18 @@ private:
         playB.repaint(); clickB.repaint();
         linkB.setButtonText (e.isLinkEnabled() ? "Link " + String (e.linkPeers()) : "Link");
         repaint (display); session.repaint();
+        if (++tickCount % 20 == 0)
+        {
+            String d = U ("Sem dispositivo de \xc3\xa1udio \xe2\x80\x94 clique para configurar");
+            if (auto* dev = app.dm.getCurrentAudioDevice())
+            {
+                const double sr = dev->getCurrentSampleRate(); const int bs = dev->getCurrentBufferSizeSamples();
+                d = dev->getTypeName() + U ("  \xc2\xb7  ") + dev->getName() + U ("  \xc2\xb7  ") + String (roundToInt (sr)) + U (" Hz  \xc2\xb7  ") + String (bs) + " amostras (" + String (1000.0 * bs / jmax (1.0, sr), 1) + U (" ms)  \xc2\xb7  ")
+                    + String (dev->getActiveOutputChannels().countNumberOfSetBits()) + U (" sa\xc3\xad" "das");
+            }
+            deviceText = d; hasDevice = app.dm.getCurrentAudioDevice() != nullptr;
+            repaint (0, getHeight() - statusH, getWidth(), statusH);
+        }
         for (int t = 0; t < trackStrips.size() && t < 64; ++t) trackStrips[t]->setPeak (e.uiTrackPeak[t].exchange (0.0f));
         for (int b = 0; b < bt::numBuses; ++b) busStrips[b]->setPeak (e.uiBusPeak[b].exchange (0.0f));
         layoutStrips();
@@ -490,7 +544,7 @@ private:
         tempo.setPlayhead (e.playing.load() ? jmax (0.0, (double) e.uiBar.load() + (double) e.uiBeatInBar.load() / jmax (1, e.uiNum.load())) : 0.0);
         if (e.numOutputs.load() != shownOuts) rebuild();
         if (auto* w = dynamic_cast<DocumentWindow*> (getTopLevelComponent()))
-            w->setName ("Batuta - " + (app.projectFile == File() ? U ("setlist sem t\xc3\xadtulo") : app.projectFile.getFileNameWithoutExtension()) + (app.dirty ? " *" : ""));
+            w->setName ("MDS - " + (app.projectFile == File() ? U ("setlist sem t\xc3\xadtulo") : app.projectFile.getFileNameWithoutExtension()) + (app.dirty ? " *" : ""));
     }
 
     void uiAction (int action, int index, float v)
@@ -511,14 +565,15 @@ private:
         PopupMenu m;
         m.addItem (1, "Nova setlist"); m.addItem (2, U ("Abrir\xe2\x80\xa6")); m.addItem (3, "Salvar"); m.addItem (4, U ("Salvar como\xe2\x80\xa6"));
         m.addSeparator(); m.addItem (5, U ("Importar stems (multitrack)\xe2\x80\xa6"));
-        m.addSeparator(); m.addItem (6, "Sobre o Batuta");
+        m.addItem (7, U ("Exportar para o celular\xe2\x80\xa6"));
+        m.addSeparator(); m.addItem (8, "Sair");
         m.showMenuAsync (PopupMenu::Options().withTargetComponent (fileB), [this] (int r)
         {
             if (r == 1) { auto go = [this] { app.engine.setProject (bt::Project()); app.projectFile = File(); app.dirty = false; rebuild(); };
                           if (app.dirty) confirm ("Nova setlist", U ("Descartar as altera\xc3\xa7\xc3\xb5" "es n\xc3\xa3o salvas?"), go); else go(); }
             else if (r == 2)
             {
-                chooser.reset (new FileChooser ("Abrir setlist", {}, "*.batuta"));
+                chooser.reset (new FileChooser ("Abrir setlist", {}, "*.mds;*.batuta"));
                 chooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this] (const FileChooser& fc) { if (fc.getResult().existsAsFile()) open (fc.getResult()); });
             }
             else if (r == 3) save (false);
@@ -530,13 +585,35 @@ private:
                 {
                     StringArray files; for (auto& f : fc.getResults()) files.add (f.getFullPathName());
                     if (files.isEmpty()) return;
-                    auto& s = app.song();
-                    const int row = (int) s.scenes.size();   // cria uma cena nova com uma trilha por arquivo
+                    const int row = (int) app.song().scenes.size();   // cria uma cena nova com uma trilha por arquivo
                     session.filesDropped (files, SessionView::sceneW + 1, SessionView::headH + row * SessionView::rowH + 1);
                 });
             }
-            else if (r == 6) message ("Batuta 0.1", U ("DAW de dire\xc3\xa7\xc3\xa3o musical.\nSoftware livre (GPLv3). Usa JUCE, Ableton Link e, no Windows, o ASIO SDK da Steinberg.\nASIO \xc3\xa9 marca registrada da Steinberg Media Technologies GmbH."));
+            else if (r == 7) exportMenu();
+            else if (r == 8) JUCEApplication::getInstance()->systemRequestedQuit();
         });
+    }
+    void optionsMenu()
+    {
+        auto& e = app.engine;
+        PopupMenu m;
+        m.addItem (1, U ("\xc3\x81udio e MIDI\xe2\x80\xa6  (driver, interface, sa\xc3\xad" "das, buffer)"));
+        m.addSeparator();
+        m.addItem (2, U ("Metr\xc3\xb4nomo ligado"), true, e.project.clickOn);
+        m.addItem (3, "Ableton Link", true, e.isLinkEnabled());
+        m.addItem (4, "Seguir o andamento do Link", true, e.linkFollow.load());
+        m.showMenuAsync (PopupMenu::Options().withTargetComponent (optB), [this] (int r)
+        {
+            auto& e2 = app.engine;
+            if (r == 1) showAudioSettings();
+            else if (r == 2) { e2.project.clickOn = ! e2.project.clickOn; app.changed (false); }
+            else if (r == 3) { e2.setLinkEnabled (! e2.isLinkEnabled()); linkB.setToggleState (e2.isLinkEnabled(), dontSendNotification); }
+            else if (r == 4) { e2.setLinkFollow (! e2.linkFollow.load()); followB.setToggleState (e2.linkFollow.load(), dontSendNotification); }
+        });
+    }
+    void about()
+    {
+        message ("MDS - Musical Direction Studio 0.2", U ("DAW de dire\xc3\xa7\xc3\xa3o musical.\nSoftware livre (GPLv3). Usa JUCE, Ableton Link e, no Windows, o ASIO SDK da Steinberg.\nASIO \xc3\xa9 marca registrada da Steinberg Media Technologies GmbH."));
     }
 
     void showAudioSettings()
@@ -557,10 +634,10 @@ private:
         {
             if (r == 1)
             {
-                chooser.reset (new FileChooser ("Salvar pacote para o celular", File::getSpecialLocation (File::userDocumentsDirectory).getChildFile (app.engine.project.name + ".batpack"), "*.batpack"));
+                chooser.reset (new FileChooser ("Salvar pacote para o celular", File::getSpecialLocation (File::userDocumentsDirectory).getChildFile (app.engine.project.name + ".mdspack"), "*.mdspack"));
                 chooser->launchAsync (FileBrowserComponent::saveMode | FileBrowserComponent::canSelectFiles | FileBrowserComponent::warnAboutOverwriting, [this] (const FileChooser& fc)
                 {
-                    if (fc.getResult() != File()) runExport (fc.getResult().withFileExtension ("batpack"), {});
+                    if (fc.getResult() != File()) runExport (fc.getResult().withFileExtension ("mdspack"), {});
                 });
             }
             else if (r == 2)
@@ -584,7 +661,7 @@ private:
         m.addItem (1, U ("Digitar o IP do celular\xe2\x80\xa6"));
         m.showMenuAsync (PopupMenu::Options().withTargetComponent (exportB), [this, peers] (int r)
         {
-            auto tmp = File::getSpecialLocation (File::tempDirectory).getChildFile (File::createLegalFileName (app.engine.project.name) + ".batpack");
+            auto tmp = File::getSpecialLocation (File::tempDirectory).getChildFile (File::createLegalFileName (app.engine.project.name) + ".mdspack");
             if (r >= 10) runExport (tmp, peers[(size_t) (r - 10)].ip);
             else if (r == 1) prompt ("IP do celular", { { U ("Endere\xc3\xa7o mostrado em Ajustes no app do celular"), "192.168.", {} } }, [this, tmp] (StringArray v) { runExport (tmp, v[0].trim()); });
         });
@@ -619,10 +696,10 @@ private:
     TempoEditor tempo; PadsPanel pads; ClickPanel click; MidiPanel midi; MidiAutoConnect midiConnect;
     TabbedComponent tabs { TabbedButtonBar::TabsAtTop };
     OwnedArray<Strip> trackStrips, busStrips;
-    TextButton fileB { "Arquivo" }, linkB { "Link" }, followB { "Seguir" }, audioB { U ("\xc3\x81udio/MIDI") };
-    IconButton playB { Icon::play }, stopB { Icon::stop }, clickB { Icon::metronome }, exportB { Icon::next, "Exportar p/ celular" };
+    TextButton fileB { "Arquivo" }, optB { U ("Op\xc3\xa7\xc3\xb5" "es") }, helpB { "Ajuda" }, linkB { "Link" }, followB { "Seguir" }, deviceB { "" };
+    IconButton playB { Icon::play }, stopB { Icon::stop }, clickB { Icon::metronome }, exportB { Icon::next, "Enviar ao celular" };
     Label status;
-    Rectangle<int> display, mixArea;
+    Rectangle<int> display, mixArea, logoArea, cpuArea, busHeader; int tickCount = 19; String deviceText; bool hasDevice = false;
     std::unique_ptr<FileChooser> chooser;
     bool building = false, exporting = false; int shownOuts = 2;
 };
@@ -631,13 +708,17 @@ private:
 class MainWindow : public DocumentWindow
 {
 public:
-    MainWindow (App& a) : DocumentWindow ("Batuta", col::bg, DocumentWindow::allButtons), app (a)
+    MainWindow (App& a) : DocumentWindow ("MDS", col::bg, DocumentWindow::allButtons), app (a)
     {
         setUsingNativeTitleBar (true);
         main = new MainComponent (a);
         setContentOwned (main, true);
-        setResizable (true, true); setResizeLimits (1100, 700, 10000, 10000);
-        centreWithSize (getWidth(), getHeight());
+        setResizable (true, true); setResizeLimits (940, 580, 10000, 10000);
+        // nunca abrir maior que a tela (em telas pequenas a barra de titulo ficava fora da area visivel)
+        auto area = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+        if (area.getWidth() < 1400 || area.getHeight() < 880) { setBounds (area.reduced (8).withTrimmedTop (28)); setFullScreen (true); }
+        else centreWithSize (1360, 820);
+        if (auto img = ImageCache::getFromMemory (BinaryData::icon_png, BinaryData::icon_pngSize); img.isValid()) setIcon (img);
         setVisible (true);
     }
     void closeButtonPressed() override
@@ -650,16 +731,16 @@ private:
     App& app;
 };
 
-class BatutaApp : public JUCEApplication
+class MDSApp : public JUCEApplication
 {
 public:
-    const String getApplicationName() override { return "Batuta"; }
+    const String getApplicationName() override { return "MDS"; }
     const String getApplicationVersion() override { return "0.1.0"; }
     bool moreThanOneInstanceAllowed() override { return false; }
 
     void initialise (const String& cmd) override
     {
-        PropertiesFile::Options o; o.applicationName = "Batuta"; o.filenameSuffix = ".settings"; o.osxLibrarySubFolder = "Application Support"; o.folderName = "Batuta";
+        PropertiesFile::Options o; o.applicationName = "MDS"; o.filenameSuffix = ".settings"; o.osxLibrarySubFolder = "Application Support"; o.folderName = "MDS";
         props.setStorageParameters (o);
         app.reset (new App());
         auto saved = props.getUserSettings()->getXmlValue ("audio");
@@ -670,8 +751,7 @@ public:
 
         File f (cmd.unquoted());
         if (! f.existsAsFile()) f = File (props.getUserSettings()->getValue ("lastProject"));
-        if (f.existsAsFile() && f.hasFileExtension ("batuta")) window->main->open (f);
-        if (fake != nullptr) window->main->setStatus (U ("Sem dispositivo de \xc3\xa1udio: abra \xc3\x81udio/MIDI"));
+        if (f.existsAsFile() && f.hasFileExtension ("mds;batuta")) window->main->open (f);
     }
     void shutdown() override
     {
@@ -695,4 +775,4 @@ private:
 };
 }
 
-START_JUCE_APPLICATION (desk::BatutaApp)
+START_JUCE_APPLICATION (desk::MDSApp)

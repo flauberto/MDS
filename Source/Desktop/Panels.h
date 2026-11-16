@@ -1,4 +1,4 @@
-// Batuta (Windows) - paineis: faixa de mixer, editor de andamento, pads, click
+// MDS (Windows) - paineis: faixa de mixer, editor de andamento, pads, click
 #pragma once
 #include "../UI/Common.h"
 
@@ -28,39 +28,48 @@ public:
         mute.setColour (TextButton::buttonOnColourId, col::stop);
         mute.setTooltip ("Mute");
         out.setTooltip (U ("Sa\xc3\xad" "da f\xc3\xadsica da interface de \xc3\xa1udio"));
+        fader.setTooltip (U ("Volume (dois cliques voltam para 0 dB)"));
         fader.onValueChange = [this] { repaint(); if (onChange) onChange(); };
         mute.onClick = [this] { if (onChange) onChange(); };
         out.onChange = [this] { if (onChange) onChange(); };
     }
     void resized() override
     {
-        auto r = getLocalBounds().reduced (4);
+        auto r = getLocalBounds().reduced (5, 4);
         r.removeFromTop (20);
-        out.setBounds (r.removeFromBottom (24));
+        out.setBounds (r.removeFromBottom (22));
         r.removeFromBottom (4);
-        auto row = r.removeFromBottom (24);
-        mute.setBounds (row.removeFromLeft (30));
-        r.removeFromBottom (4);
-        meterArea = r.removeFromRight (10);
-        fader.setBounds (r.reduced (6, 0));
+        auto row = r.removeFromBottom (20);
+        mute.setBounds (row.removeFromLeft (26)); valueArea = row.withTrimmedLeft (4);
+        r.removeFromBottom (5); r.removeFromTop (3);
+        meterArea = r.removeFromRight (7).reduced (0, 9);
+        r.removeFromRight (5);
+        fader.setBounds (r);
     }
     void paint (Graphics& g) override
     {
-        g.setColour (col::panel); g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (1), 5.0f);
-        g.setColour (colour); g.fillRect (4, 3, getWidth() - 8, 2);
-        g.setColour (col::text); g.setFont (FontOptions (13.0f, Font::bold));
-        g.drawFittedText (title, 4, 6, getWidth() - 8, 16, Justification::centred, 1);
-        g.setColour (col::dim); g.setFont (FontOptions (12.0f));
-        g.drawText (String (fader.getValue(), 1) + " dB", 36, getHeight() - 56, getWidth() - 40, 24, Justification::centredRight);
-        g.setColour (col::bg); g.fillRect (meterArea);
+        auto b = getLocalBounds().toFloat();
+        g.setColour (col::panel); g.fillRect (b);
+        g.setColour (col::line); g.fillRect (b.removeFromRight (1.0f));
+        g.setColour (colour); g.fillRect (0, 0, getWidth() - 1, 3);
+        g.setColour (col::text); g.setFont (FontOptions (12.0f, Font::bold));
+        g.drawFittedText (title, 4, 5, getWidth() - 8, 16, Justification::centred, 1);
+        g.setColour (Colour (0xff0e0f11)); g.fillRoundedRectangle (valueArea.toFloat(), 2.0f);
+        g.setColour (col::dim); g.setFont (FontOptions (11.0f));
+        g.drawText (String (fader.getValue(), 1), valueArea.reduced (4, 0), Justification::centredRight);
+        g.setColour (Colour (0xff0e0f11)); g.fillRect (meterArea);
         const float db = Decibels::gainToDecibels (peak, -60.0f);
         const int hh = (int) (jlimit (0.0f, 1.0f, (db + 60.0f) / 60.0f) * (float) meterArea.getHeight());
-        g.setColour (peak > 0.98f ? col::stop : col::play); g.fillRect (meterArea.withTop (meterArea.getBottom() - hh));
+        auto lit = meterArea.withTop (meterArea.getBottom() - hh);
+        g.setColour (col::play); g.fillRect (lit);
+        const int yellow = meterArea.getY() + meterArea.getHeight() / 5, red = meterArea.getY() + meterArea.getHeight() / 30;
+        if (lit.getY() < yellow) { g.setColour (col::queued); g.fillRect (lit.withBottom (yellow)); }
+        if (lit.getY() < red) { g.setColour (col::stop); g.fillRect (lit.withBottom (red)); }
     }
     void setPeak (float p) { peak = jmax (p, peak * 0.85f); repaint (meterArea); }
 
     Fader fader; TextButton mute { "M" }; ComboBox out;
-    String title; Colour colour; float peak = 0; Rectangle<int> meterArea;
+    String title; Colour colour; float peak = 0; Rectangle<int> meterArea, valueArea;
     std::function<void()> onChange;
 };
 
@@ -73,7 +82,7 @@ public:
     {
         auto setupNum = [this] (Slider& s, double lo, double hi, double step, const String& tip)
         {
-            s.setSliderStyle (Slider::IncDecButtons); s.setRange (lo, hi, step); s.setTextBoxStyle (Slider::TextBoxLeft, false, 56, 24);
+            s.setSliderStyle (Slider::IncDecButtons); s.setRange (lo, hi, step); s.setTextBoxStyle (Slider::TextBoxLeft, false, 52, 22);
             s.setIncDecButtonsMode (Slider::incDecButtonsDraggable_Vertical); s.setTooltip (tip);
             s.onValueChange = [this] { fromControls(); }; addAndMakeVisible (s);
         };
@@ -83,6 +92,9 @@ public:
         setupNum (b1, 20, 400, 0.5, U ("BPM no fim do bloco (diferente do in\xc3\xad" "cio = rampa)"));
         den.addItemList ({ "2", "4", "8", "16" }, 1); den.onChange = [this] { fromControls(); }; addAndMakeVisible (den);
         for (auto* b : { &add, &del }) addAndMakeVisible (*b);
+        addAndMakeVisible (pattern);
+        pattern.setTooltip (U ("Padr\xc3\xa3o do click neste bloco: clique em cada tempo para alternar entre forte, normal, fraco e mudo"));
+        pattern.onChange = [this] (String p) { app.song().tempo[(size_t) sel].pattern = p; app.changed (false); };
         add.setTooltip (U ("Inserir bloco depois do selecionado")); del.setTooltip ("Excluir bloco selecionado");
         add.onClick = [this]
         {
@@ -105,6 +117,7 @@ public:
         updating = true;
         bars.setValue (b.bars); num.setValue (b.num); b0.setValue (b.bpm0); b1.setValue (b.bpm1);
         den.setText (String (b.den), dontSendNotification);
+        pattern.setPattern (b.fullPattern());
         updating = false; repaint();
     }
     void fromControls()
@@ -113,20 +126,26 @@ public:
         auto& b = app.song().tempo[(size_t) sel];
         b.bars = (int) bars.getValue(); b.num = (int) num.getValue(); b.den = jmax (2, den.getText().getIntValue());
         b.bpm0 = b0.getValue(); b.bpm1 = b1.getValue();
+        b.pattern = b.fullPattern().substring (0, b.num);
+        pattern.setPattern (b.fullPattern());
         app.changed (false); repaint();
     }
 
     void resized() override
     {
-        auto r = getLocalBounds().reduced (8);
-        auto row = r.removeFromBottom (28); graph = r.withTrimmedBottom (6);
+        auto r = getLocalBounds().reduced (8, 6);
+        auto row2 = r.removeFromBottom (30); r.removeFromBottom (4);
+        auto row = r.removeFromBottom (24); graph = r.withTrimmedBottom (6);
         auto place = [&] (Component& c, int w) { c.setBounds (row.removeFromLeft (w)); row.removeFromLeft (6); };
-        labelX[0] = row.getX(); row.removeFromLeft (78); place (bars, 110);
-        labelX[1] = row.getX(); row.removeFromLeft (64); place (num, 100); place (den, 60);
-        labelX[2] = row.getX(); row.removeFromLeft (76); place (b0, 120);
-        labelX[3] = row.getX(); row.removeFromLeft (62); place (b1, 120);
-        row.removeFromLeft (10); place (add, 130); place (del, 130);
+        labelX[0] = row.getX(); row.removeFromLeft (74); place (bars, 104);
+        labelX[1] = row.getX(); row.removeFromLeft (58); place (num, 96); place (den, 58);
+        labelX[2] = row.getX(); row.removeFromLeft (70); place (b0, 112);
+        labelX[3] = row.getX(); row.removeFromLeft (58); place (b1, 112);
+        row.removeFromLeft (10); place (add, 120); place (del, 124);
         labelY = row.getY();
+        patternLabel = row2.removeFromLeft (110);
+        pattern.setBounds (row2.removeFromLeft (jmin (row2.getWidth() - 330, 16 * 38)));
+        legend = row2.withTrimmedLeft (12);
     }
 
     void paint (Graphics& g) override
@@ -134,7 +153,10 @@ public:
         g.fillAll (col::panel);
         g.setColour (col::dim); g.setFont (FontOptions (13.0f));
         const char* names[4] = { "Compassos", "F\xc3\xb3rmula", "BPM in\xc3\xad" "cio", "BPM fim" };
-        for (int i = 0; i < 4; ++i) g.drawText (U (names[i]), labelX[i], labelY, 76, 28, Justification::centredLeft);
+        for (int i = 0; i < 4; ++i) g.drawText (U (names[i]), labelX[i], labelY, 76, 24, Justification::centredLeft);
+        g.drawText (U ("Padr\xc3\xa3o do click"), patternLabel, Justification::centredLeft);
+        g.setFont (FontOptions (11.5f));
+        g.drawFittedText (U ("clique em um tempo: forte \xe2\x86\x92 normal \xe2\x86\x92 fraco \xe2\x86\x92 mudo"), legend, Justification::centredLeft, 1);
 
         auto& t = app.song().tempo;
         lo = 400; hi = 20; totalBars = 0;
@@ -223,7 +245,7 @@ private:
     float yFor (double bpm) const { return plot.getBottom() - (float) ((bpm - lo) / (hi - lo)) * plot.getHeight(); }
     struct Handle { int block; bool end; Point<float> pos; };
     App& app;
-    Slider bars, num, b0, b1; ComboBox den;
+    Slider bars, num, b0, b1; ComboBox den; PatternStrip pattern; Rectangle<int> patternLabel, legend;
     IconButton add { Icon::plus, "Novo bloco" }, del { Icon::minus, "Excluir bloco" };
     Rectangle<int> graph; Rectangle<float> plot; float barW = 10;
     std::vector<Handle> handles;
@@ -265,8 +287,8 @@ public:
             const bool has = d.file.isNotEmpty() || d.builtin >= 0;
             auto c = cell (i).toFloat();
             const bool flash = Time::getMillisecondCounter() - flashTime[i] < 140;
-            g.setColour (flash ? col::accent : (has ? col::raised : col::bg)); g.fillRoundedRectangle (c, 6.0f);
-            g.setColour (col::line); g.drawRoundedRectangle (c, 6.0f, 1.0f);
+            g.setColour (flash ? col::accent : (has ? col::raised : col::bg)); g.fillRoundedRectangle (c, radius);
+            g.setColour (col::line); g.drawRoundedRectangle (c, radius, 1.0f);
             g.setColour (flash ? col::bg : col::dim); g.setFont (FontOptions (11.0f)); g.drawText (String (i + 1), c.reduced (6, 4), Justification::topLeft);
             g.setColour (flash ? col::bg : (has ? col::text : col::dim)); g.setFont (FontOptions (14.0f, Font::bold));
             g.drawFittedText (has ? d.name : "vazio", c.toNearestInt().reduced (4), Justification::centred, 2);
@@ -304,7 +326,7 @@ private:
             if (r >= 100) { d.builtin = r - 100; d.file.clear(); d.name = bt::builtinPadNames()[r - 100]; done(); }
             else if (r == 4) { d = {}; done(); }
             else if (r == 2) prompt ("Nome do pad", { { "Nome", d.name, {} } }, [&d, done] (StringArray v) { d.name = v[0]; done(); });
-            else if (r == 3) prompt ("Volume do pad (dB)", { { "dB (-24 a +6)", String (d.gainDb, 1), {} } }, [&d, done] (StringArray v) { d.gainDb = jlimit (-24.0f, 6.0f, v[0].replaceCharacter (',', '.').getFloatValue()); done(); });
+            else if (r == 3) prompt ("Volume do pad (dB)", { { "dB (-24 a +6)", String (d.gainDb, 1), {} } }, [&d, done] (StringArray v) { d.gainDb = jlimit (-24.0f, radius, v[0].replaceCharacter (',', '.').getFloatValue()); done(); });
             else if (r == 1)
             {
                 chooser.reset (new FileChooser (U ("Escolha um \xc3\xa1udio curto"), {}, "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3"));

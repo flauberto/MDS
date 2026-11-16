@@ -8,6 +8,9 @@
 
 namespace BinaryData
 {
+    extern const char*   icon_png;
+    const int            icon_pngSize = 11228;
+
     extern const char*   en_1_wav;
     const int            en_1_wavSize = 32494;
 
@@ -129,7 +132,7 @@ namespace BinaryData
     const int            pt_cue_7_wavSize = 38114;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 40;
+    const int namedResourceListSize = 41;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

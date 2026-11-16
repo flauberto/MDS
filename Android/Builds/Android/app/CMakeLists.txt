@@ -14,7 +14,7 @@ add_subdirectory (${OBOE_DIR} ./oboe)
 add_library("cpufeatures" STATIC "${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c")
 set_source_files_properties("${ANDROID_NDK}/sources/android/cpufeatures/cpu-features.c" PROPERTIES COMPILE_FLAGS "-Wno-sign-conversion -Wno-gnu-statement-expression")
 
-add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/rmsl/juce/JuceActivity"]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_CORE_INCLUDE_JNI_HELPERS=1]] [[-DLINK_PLATFORM_LINUX=1]] [[-DLINK_PLATFORM_UNIX=1]] [[-DASIO_STANDALONE=1]] [[-DASIO_NO_TYPEID=1]] [[-DASIO_VERSION_NAMESPACE=link_asio_1_38_2]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=0.1.0]] [[-DJUCE_APP_VERSION_HEX=0x100]])
+add_definitions([[-DJUCE_ANDROID=1]] [[-DJUCE_ANDROID_API_VERSION=24]] [[-DJUCE_PUSH_NOTIFICATIONS=1]] [[-DJUCE_PUSH_NOTIFICATIONS_ACTIVITY="com/rmsl/juce/JuceActivity"]] [[-DJUCE_ANDROID_GL_ES_VERSION_3_0=1]] [[-DJUCE_CORE_INCLUDE_JNI_HELPERS=1]] [[-DLINK_PLATFORM_LINUX=1]] [[-DLINK_PLATFORM_UNIX=1]] [[-DASIO_STANDALONE=1]] [[-DASIO_NO_TYPEID=1]] [[-DASIO_VERSION_NAMESPACE=link_asio_1_38_2]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=0.2.0]] [[-DJUCE_APP_VERSION_HEX=0x200]])
 
 include_directories( AFTER
     "../../../JuceLibraryCode"
@@ -25,7 +25,7 @@ include_directories( AFTER
 enable_language(ASM)
 
 if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
-    add_definitions([[-DJUCE_CORE_INCLUDE_JNI_HELPERS=1]] [[-DLINK_PLATFORM_LINUX=1]] [[-DLINK_PLATFORM_UNIX=1]] [[-DASIO_STANDALONE=1]] [[-DASIO_NO_TYPEID=1]] [[-DASIO_VERSION_NAMESPACE=link_asio_1_38_2]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=0.1.0]] [[-DJUCE_APP_VERSION_HEX=0x100]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
+    add_definitions([[-DJUCE_CORE_INCLUDE_JNI_HELPERS=1]] [[-DLINK_PLATFORM_LINUX=1]] [[-DLINK_PLATFORM_UNIX=1]] [[-DASIO_STANDALONE=1]] [[-DASIO_NO_TYPEID=1]] [[-DASIO_VERSION_NAMESPACE=link_asio_1_38_2]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=0.2.0]] [[-DJUCE_APP_VERSION_HEX=0x200]] [[-DDEBUG=1]] [[-D_DEBUG=1]])
     include_directories( AFTER
         "../../../../Source"
         "../../../../third_party/link/include"
@@ -33,7 +33,7 @@ if(JUCE_BUILD_CONFIGURATION MATCHES "DEBUG")
     )
 
 elseif(JUCE_BUILD_CONFIGURATION MATCHES "RELEASE")
-    add_definitions([[-DJUCE_CORE_INCLUDE_JNI_HELPERS=1]] [[-DLINK_PLATFORM_LINUX=1]] [[-DLINK_PLATFORM_UNIX=1]] [[-DASIO_STANDALONE=1]] [[-DASIO_NO_TYPEID=1]] [[-DASIO_VERSION_NAMESPACE=link_asio_1_38_2]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=0.1.0]] [[-DJUCE_APP_VERSION_HEX=0x100]] [[-DNDEBUG=1]])
+    add_definitions([[-DJUCE_CORE_INCLUDE_JNI_HELPERS=1]] [[-DLINK_PLATFORM_LINUX=1]] [[-DLINK_PLATFORM_UNIX=1]] [[-DASIO_STANDALONE=1]] [[-DASIO_NO_TYPEID=1]] [[-DASIO_VERSION_NAMESPACE=link_asio_1_38_2]] [[-DJUCER_ANDROIDSTUDIO_7F0E4A25=1]] [[-DJUCE_APP_VERSION=0.2.0]] [[-DJUCE_APP_VERSION_HEX=0x200]] [[-DNDEBUG=1]])
     include_directories( AFTER
         "../../../../Source"
         "../../../../third_party/link/include"
@@ -57,6 +57,7 @@ add_library( ${BINARY_NAME}
     "../../../../Source/Engine/Sounds.h"
     "../../../../Source/Engine/Package.h"
     "../../../../Source/UI/Common.h"
+    "../../../../Assets/icon.png"
     "../../../../Assets/voices/en_1.wav"
     "../../../../Assets/voices/en_10.wav"
     "../../../../Assets/voices/en_11.wav"
@@ -2382,6 +2383,7 @@ set_source_files_properties(
     "../../../../Source/Engine/Sounds.h"
     "../../../../Source/Engine/Package.h"
     "../../../../Source/UI/Common.h"
+    "../../../../Assets/icon.png"
     "../../../../Assets/voices/en_1.wav"
     "../../../../Assets/voices/en_10.wav"
     "../../../../Assets/voices/en_11.wav"

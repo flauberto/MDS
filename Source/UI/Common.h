@@ -1,4 +1,4 @@
-// Batuta - elementos de interface compartilhados (tema, icones, dialogos, painel MIDI)
+// MDS - elementos de interface compartilhados (tema, icones, dialogos, painel MIDI)
 #pragma once
 #include <JuceHeader.h>
 #include "../Engine/Engine.h"
@@ -11,9 +11,26 @@ inline String U (const char* utf8) { return String::fromUTF8 (utf8); }
 
 namespace col
 {
-    const Colour bg       { 0xff14161a }, panel { 0xff1e2127 }, raised { 0xff2b2f37 }, line { 0xff3a3f49 };
-    const Colour text     { 0xfff3f5f8 }, dim   { 0xffa3acb9 };
-    const Colour accent   { 0xffffb020 }, play  { 0xff35d07f }, stop { 0xffff5c5c }, queued { 0xffffd84a }, link { 0xff4cc3ff }, cue { 0xffc58bff };
+    const Colour bg       { 0xff17191c }, panel { 0xff202327 }, raised { 0xff2c3036 }, line { 0xff3b4048 };
+    const Colour text     { 0xffe8eaed }, dim   { 0xff8d95a1 };
+    const Colour accent   { 0xffffa826 }, play  { 0xff42c97a }, stop { 0xffef5b5b }, queued { 0xffffd24a }, link { 0xff4fb4f0 }, cue { 0xffb48cf0 };
+    inline Colour track (int i)
+    {
+        static const uint32 c[8] = { 0xff5fa8d3, 0xff6fcf97, 0xffe0a458, 0xffd97b7b, 0xff8fa3e8, 0xff58c4c0, 0xffc9b458, 0xffb98ad8 };
+        return Colour (c[((i % 8) + 8) % 8]);
+    }
+}
+constexpr float radius = 3.0f;
+
+// Marca do MDS (M com o ponto do tempo forte)
+inline void drawLogo (Graphics& g, Rectangle<float> r, bool withTile = true)
+{
+    const float s = jmin (r.getWidth(), r.getHeight()); r = r.withSizeKeepingCentre (s, s);
+    if (withTile) { g.setColour (Colour (0xff0f1012)); g.fillRoundedRectangle (r, s * 0.19f); }
+    auto pt = [&] (float x, float y) { return Point<float> (r.getX() + x / 512.0f * s, r.getY() + y / 512.0f * s); };
+    Path m; m.startNewSubPath (pt (112, 372)); m.lineTo (pt (112, 168)); m.lineTo (pt (256, 312)); m.lineTo (pt (400, 168)); m.lineTo (pt (400, 372));
+    g.setColour (col::text); g.strokePath (m, PathStrokeType (s * 0.09f, PathStrokeType::curved, PathStrokeType::rounded));
+    g.setColour (col::accent); g.fillEllipse (Rectangle<float> (s * 0.117f, s * 0.117f).withCentre (pt (256, 150)));
 }
 
 enum class Icon { play, stop, plus, minus, up, down, prev, next, loop, lock, metronome, copy };
@@ -59,15 +76,16 @@ public:
     void paintButton (Graphics& g, bool over, bool down) override
     {
         auto r = getLocalBounds().toFloat().reduced (1.0f);
-        g.setColour (lit ? colour : (down ? fill.brighter (0.25f) : over ? fill.brighter (0.1f) : fill));
-        g.fillRoundedRectangle (r, 6.0f);
+        g.setColour (lit ? colour : (down ? fill.brighter (0.2f) : over ? fill.brighter (0.08f) : fill));
+        g.fillRoundedRectangle (r, radius);
+        if (! lit) { g.setColour (col::line); g.drawRoundedRectangle (r.reduced (0.5f), radius, 1.0f); }
         const Colour fg = lit ? col::bg : (isEnabled() ? colour : col::dim.darker());
-        if (text.isEmpty()) drawIcon (g, icon, r.reduced (r.getHeight() * 0.27f), fg);
+        if (text.isEmpty()) drawIcon (g, icon, r.reduced (r.getHeight() * 0.3f), fg);
         else
         {
-            auto ir = r.removeFromLeft (r.getHeight()).reduced (r.getHeight() * 0.3f);
+            auto ir = r.removeFromLeft (r.getHeight()).reduced (r.getHeight() * 0.32f);
             drawIcon (g, icon, ir, fg);
-            g.setColour (fg); g.setFont (FontOptions (jmin (16.0f, r.getHeight() * 0.42f), Font::bold));
+            g.setColour (fg); g.setFont (FontOptions (jmin (15.0f, r.getHeight() * 0.44f), Font::bold));
             g.drawFittedText (text, r.toNearestInt().reduced (2, 0), Justification::centredLeft, 1);
         }
     }
@@ -115,39 +133,46 @@ public:
     void drawButtonBackground (Graphics& g, Button& b, const Colour&, bool over, bool down) override
     {
         auto r = b.getLocalBounds().toFloat().reduced (1.0f);
-        Colour c = b.getToggleState() ? b.findColour (TextButton::buttonOnColourId) : b.findColour (TextButton::buttonColourId);
+        const bool on = b.getToggleState();
+        Colour c = on ? b.findColour (TextButton::buttonOnColourId) : b.findColour (TextButton::buttonColourId);
+        if (c.isTransparent()) { if (over || down) { g.setColour (col::raised); g.fillRoundedRectangle (r, radius); } return; }   // botao de menu
         if (down) c = c.brighter (0.2f); else if (over) c = c.brighter (0.08f);
-        g.setColour (c); g.fillRoundedRectangle (r, 6.0f);
+        g.setColour (c); g.fillRoundedRectangle (r, radius);
+        if (! on) { g.setColour (col::line); g.drawRoundedRectangle (r.reduced (0.5f), radius, 1.0f); }
     }
-    Font getTextButtonFont (TextButton&, int h) override { return FontOptions (jmin (17.0f, h * 0.48f), Font::bold); }
+    Font getTextButtonFont (TextButton&, int h) override { return FontOptions (jmin (scale * 14.0f, h * 0.46f), Font::bold); }
 
     void drawLinearSlider (Graphics& g, int x, int y, int w, int h, float pos, float, float, Slider::SliderStyle style, Slider& s) override
     {
         const bool vert = style == Slider::LinearVertical;
         auto area = Rectangle<float> ((float) x, (float) y, (float) w, (float) h);
-        const float thick = jmin (10.0f, (vert ? w : h) * 0.22f);
+        const float thick = vert ? 4.0f : 6.0f;
         auto track = vert ? area.withSizeKeepingCentre (thick, area.getHeight()) : area.withSizeKeepingCentre (area.getWidth(), thick);
-        g.setColour (col::bg); g.fillRoundedRectangle (track, thick * 0.5f);
-        g.setColour (col::line); g.drawRoundedRectangle (track, thick * 0.5f, 1.0f);
-        auto fillC = s.findColour (Slider::trackColourId);
-        g.setColour (s.isEnabled() ? fillC : col::line);
+        g.setColour (Colour (0xff0e0f11)); g.fillRoundedRectangle (track, thick * 0.5f);
+        g.setColour (s.isEnabled() ? s.findColour (Slider::trackColourId).withAlpha (0.9f) : col::line);
         if (vert) g.fillRoundedRectangle (track.withTop (pos), thick * 0.5f); else g.fillRoundedRectangle (track.withRight (pos), thick * 0.5f);
-        // marca de 0 dB
-        const float zero = (float) s.getPositionOfValue (0.0);
-        g.setColour (col::dim);
-        if (vert) g.fillRect (area.getX(), zero - 0.5f, area.getWidth() * 0.18f, 1.0f); else g.fillRect (zero - 0.5f, area.getY(), 1.0f, area.getHeight() * 0.18f);
-        // knob largo (tatil)
-        const float kl = vert ? jmin (26.0f, h * 0.18f) : jmin (38.0f, w * 0.12f);
-        auto knob = vert ? Rectangle<float> (area.getX() + 2, pos - kl * 0.5f, area.getWidth() - 4, kl)
-                         : Rectangle<float> (pos - kl * 0.5f, area.getY() + 2, kl, area.getHeight() - 4);
-        g.setColour (col::text); g.fillRoundedRectangle (knob, 4.0f);
-        g.setColour (col::bg);
-        if (vert) g.fillRect (knob.getX() + 3, knob.getCentreY() - 1.0f, knob.getWidth() - 6, 2.0f);
-        else g.fillRect (knob.getCentreX() - 1.0f, knob.getY() + 3, 2.0f, knob.getHeight() - 6);
+        // escala em dB
+        g.setColour (col::line.brighter (0.25f));
+        for (double db : { 6.0, 0.0, -6.0, -12.0, -24.0, -48.0 })
+        {
+            const float p = (float) s.getPositionOfValue (db);
+            const float len = db == 0.0 ? 7.0f : 4.0f;
+            if (vert) { g.fillRect (track.getX() - 4 - len, p - 0.5f, len, 1.0f); g.fillRect (track.getRight() + 4, p - 0.5f, len, 1.0f); }
+            else g.fillRect (p - 0.5f, track.getY() - 4 - len, 1.0f, len);
+        }
+        // cap do fader
+        const float capL = vert ? jlimit (18.0f, 26.0f, h * 0.16f) : jlimit (26.0f, 44.0f, w * 0.1f);
+        const float capW = vert ? jmin (26.0f, area.getWidth() - 2) : jmin (34.0f, area.getHeight() - 2);
+        auto cap = vert ? Rectangle<float> (capW, capL).withCentre ({ area.getCentreX(), pos }) : Rectangle<float> (capL, capW).withCentre ({ pos, area.getCentreY() });
+        g.setGradientFill (ColourGradient (Colour (0xffd9dce1), cap.getTopLeft(), Colour (0xff9aa1ac), vert ? cap.getBottomLeft() : cap.getTopRight(), false));
+        g.fillRoundedRectangle (cap, 2.0f);
+        g.setColour (Colour (0xff0e0f11));
+        if (vert) g.fillRect (cap.getX() + 2, cap.getCentreY() - 1.0f, cap.getWidth() - 4, 2.0f);
+        else g.fillRect (cap.getCentreX() - 1.0f, cap.getY() + 2, 2.0f, cap.getHeight() - 4);
     }
     int getSliderThumbRadius (Slider&) override { return 14; }
     Font getComboBoxFont (ComboBox& c) override { return FontOptions (jmin (16.0f, c.getHeight() * 0.55f)); }
-    Font getPopupMenuFont() override { return FontOptions (scale * 16.0f); }
+    Font getPopupMenuFont() override { return FontOptions (scale * 14.0f); }
     Font getAlertWindowMessageFont() override { return FontOptions (scale * 15.0f); }
     Font getAlertWindowFont() override { return FontOptions (scale * 15.0f); }
     Font getAlertWindowTitleFont() override { return FontOptions (scale * 18.0f, Font::bold); }
@@ -169,6 +194,50 @@ public:
         setColour (trackColourId, c);
     }
     void setFromNormalised (float v) { setValue (proportionOfLengthToValue (jlimit (0.0, 1.0, (double) v)), sendNotificationSync); }
+};
+
+// Padrao do click: um quadro por tempo; clicar alterna forte > normal > fraco > mudo
+class PatternStrip : public Component, public SettableTooltipClient
+{
+public:
+    String pattern;                                   // digitos 0..3
+    std::function<void (String)> onChange;
+    void setPattern (const String& p) { if (p != pattern) { pattern = p; repaint(); } }
+    Rectangle<float> cell (int i) const
+    {
+        const int n = jmax (1, pattern.length());
+        const float w = jmin ((float) getWidth() / (float) n, (float) getHeight() * 1.25f);
+        return Rectangle<float> (i * w, 0.0f, w, (float) getHeight()).reduced (jmax (1.0f, w * 0.06f), 0.0f);
+    }
+    void paint (Graphics& g) override
+    {
+        for (int i = 0; i < pattern.length(); ++i)
+        {
+            const int lvl = jlimit (0, 3, (int) (pattern[i] - '0'));
+            auto c = cell (i);
+            g.setColour (Colour (0xff0e0f11)); g.fillRoundedRectangle (c, radius);
+            g.setColour (col::line); g.drawRoundedRectangle (c.reduced (0.5f), radius, 1.0f);
+            auto inner = c.reduced (3.0f);
+            if (lvl > 0)
+            {
+                g.setColour (lvl == 3 ? col::accent : (lvl == 2 ? col::text.withAlpha (0.85f) : col::dim.withAlpha (0.7f)));
+                g.fillRoundedRectangle (inner.withTop (inner.getBottom() - inner.getHeight() * (float) lvl / 3.0f), 2.0f);
+            }
+            else { g.setColour (col::dim); g.fillRect (inner.withSizeKeepingCentre (inner.getWidth() * 0.4f, 2.0f)); }
+            g.setColour (lvl == 3 ? col::bg : col::dim); g.setFont (FontOptions (jmin (11.0f, c.getHeight() * 0.3f), Font::bold));
+            g.drawText (String (i + 1), inner.removeFromBottom (jmin (14.0f, c.getHeight() * 0.35f)), Justification::centred);
+        }
+    }
+    void mouseDown (const MouseEvent& e) override
+    {
+        for (int i = 0; i < pattern.length(); ++i)
+            if (cell (i).contains (e.position))
+            {
+                const int lvl = jlimit (0, 3, (int) (pattern[i] - '0'));
+                pattern = pattern.replaceSection (i, 1, String (lvl == 0 ? 3 : lvl - 1));
+                repaint(); if (onChange) onChange (pattern);
+            }
+    }
 };
 
 struct Field { String label, value; StringArray choices; };

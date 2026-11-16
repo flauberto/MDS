@@ -1,4 +1,4 @@
-// Batuta (Android) - modulo de palco portatil: split stereo fixo, mixer tatil, pads, setlist
+// MDS (Android) - modulo de palco portatil: split stereo fixo, mixer tatil, pads, setlist
 #include "../UI/Common.h"
 
 namespace mob
@@ -21,7 +21,7 @@ static void acquireMulticastLock()
     {
         jclass wifiClass = env->GetObjectClass (wifi);
         jmethodID create = env->GetMethodID (wifiClass, "createMulticastLock", "(Ljava/lang/String;)Landroid/net/wifi/WifiManager$MulticastLock;");
-        jstring tag = env->NewStringUTF ("batuta");
+        jstring tag = env->NewStringUTF ("mds");
         jobject lock = env->CallObjectMethod (wifi, create, tag);
         if (lock != nullptr)
         {
@@ -43,6 +43,7 @@ struct MApp
     bool locked = true;                       // trava de palco: acoes criticas pedem toque duplo
     std::function<void()> refreshAll;
     std::function<void (String)> toast;
+    std::function<void (String, Component*)> showOverlay;    // assume a posse do componente
 
     bt::Song& song() { return engine.song(); }
     void save() { projectFile.getParentDirectory().createDirectory(); engine.project.save (projectFile); dataDir.getChildFile ("atual.txt").replaceWithText (projectFile.getFullPathName()); }
@@ -99,7 +100,7 @@ private:
             g.drawFittedText (r.title, 14, 0, w - 28, h - 4, Justification::bottomLeft, 2);
             return;
         }
-        g.setColour (col::panel); g.fillRoundedRectangle (6.0f, 2.0f, w - 12.0f, h - 4.0f, 6.0f);
+        g.setColour (col::panel); g.fillRoundedRectangle (6.0f, 2.0f, w - 12.0f, h - 4.0f, ui::radius + 1.0f);
         const String v = r.value ? r.value() : String();
         g.setColour (col::text); g.setFont (FontOptions (17.0f, Font::bold));
         g.drawFittedText (r.title, 18, 0, v.isEmpty() ? w - 36 : w * 55 / 100, h, Justification::centredLeft, 2);
@@ -159,14 +160,14 @@ public:
         titleArea = Rectangle<int> (prev.getRight() + 8, prev.getY(), next.getX() - prev.getRight() - 16, prev.getHeight());
 
         auto d = display;
-        g.setColour (col::panel); g.fillRoundedRectangle (d.toFloat(), 10.0f);
+        g.setColour (col::panel); g.fillRoundedRectangle (d.toFloat(), ui::radius + 3.0f);
         const bool playing = e.playing.load(); const int bar = e.uiBar.load(), beat = e.uiBeatInBar.load(), num = jlimit (1, 16, e.uiNum.load());
         auto leds = d.removeFromBottom (jmin (70, d.getHeight() / 4)).reduced (14, 10);
         const float lw = (float) leds.getWidth() / (float) num;
         for (int i = 0; i < num; ++i)
         {
             auto l = Rectangle<float> (leds.getX() + i * lw, (float) leds.getY(), lw, (float) leds.getHeight()).reduced (3.0f);
-            g.setColour (playing && i == beat ? (i == 0 ? col::accent : col::play) : col::raised); g.fillRoundedRectangle (l, 6.0f);
+            g.setColour (playing && i == beat ? (i == 0 ? col::accent : col::play) : col::raised); g.fillRoundedRectangle (l, ui::radius + 1.0f);
         }
         auto info = d.removeFromBottom (30);
         g.setColour (col::dim); g.setFont (FontOptions (15.0f));
@@ -289,7 +290,7 @@ public:
             const bool has = d.file.isNotEmpty() || d.builtin >= 0;
             const bool flash = Time::getMillisecondCounter() - flashTime[i] < 150;
             auto c = cell (i).toFloat();
-            g.setColour (flash ? col::accent : (has ? col::raised : col::panel)); g.fillRoundedRectangle (c, 10.0f);
+            g.setColour (flash ? col::accent : (has ? col::raised : col::panel)); g.fillRoundedRectangle (c, ui::radius + 3.0f);
             g.setColour (edit.getToggleState() ? col::queued : col::line); g.drawRoundedRectangle (c, 10.0f, edit.getToggleState() ? 2.0f : 1.0f);
             g.setColour (flash ? col::bg : col::dim); g.setFont (FontOptions (13.0f)); g.drawText (String (i + 1), c.reduced (10, 8), Justification::topLeft);
             g.setColour (flash ? col::bg : (has ? col::text : col::dim)); g.setFont (FontOptions (19.0f, Font::bold));
@@ -403,11 +404,38 @@ public:
         rows.push_back ({ U ("Metr\xc3\xb4nomo em blocos (toque para editar)"), {}, {}, true });
         auto& tempo = app.song().tempo;
         for (int i = 0; i < (int) tempo.size(); ++i)
+        {
             rows.push_back ({ String (i + 1) + ".  " + blockText (tempo[(size_t) i]), {}, [this, i] { editBlock (i); } });
+            rows.push_back ({ U ("      Padr\xc3\xa3o do click"), [this, i] { return patternText (app.song().tempo[(size_t) i]); }, [this, i] { editPattern (i); } });
+        }
         rows.push_back ({ U ("+  Adicionar bloco"), {}, [this] { auto& t = app.song().tempo; auto b = t.back(); b.bpm0 = b.bpm1; t.push_back (b); app.changed (false); rebuild(); editBlock ((int) t.size() - 1); } });
         if (tempo.size() > 1) rows.push_back ({ U ("\xe2\x88\x92  Remover o \xc3\xbaltimo bloco"), {}, [this] { auto& t = app.song().tempo; if (t.size() > 1) { t.pop_back(); app.changed (false); rebuild(); } } });
         rows.push_back ({ U ("Depois do \xc3\xbaltimo bloco o andamento final continua at\xc3\xa9 voc\xc3\xaa parar."), {}, {}, true });
         list.refresh();
+    }
+    static String patternText (const bt::TempoBlock& b)
+    {
+        String s; const char* g[4] = { "\xc2\xb7", "o", "O", "\xe2\x97\x8f" };
+        for (auto c : b.fullPattern()) s << U (g[jlimit (0, 3, (int) (c - '0'))]) << " ";
+        return s.trim();
+    }
+    struct PatternEditor : Component
+    {
+        PatternEditor() { addAndMakeVisible (strip); }
+        void resized() override { strip.setBounds (getLocalBounds().reduced (14).withTrimmedTop (70).withHeight (jmin (150, getHeight() / 3))); }
+        void paint (Graphics& g) override
+        {
+            g.fillAll (col::bg); g.setColour (col::dim); g.setFont (FontOptions (15.0f));
+            g.drawFittedText (U ("Toque em cada tempo do compasso para alternar: forte \xe2\x86\x92 normal \xe2\x86\x92 fraco \xe2\x86\x92 mudo."), getLocalBounds().reduced (14).removeFromTop (60), Justification::centredLeft, 3);
+        }
+        PatternStrip strip;
+    };
+    void editPattern (int i)
+    {
+        auto* ed = new PatternEditor();
+        ed->strip.setPattern (app.song().tempo[(size_t) i].fullPattern());
+        ed->strip.onChange = [this, i] (String p) { auto& t = app.song().tempo; if (i < (int) t.size()) { t[(size_t) i].pattern = p; app.changed (false); list.refresh(); } };
+        if (app.showOverlay) app.showOverlay (U ("Padr\xc3\xa3o do click \xe2\x80\x94 bloco ") + String (i + 1), ed);
     }
     void editBlock (int i)
     {
@@ -423,6 +451,7 @@ public:
                     if (n >= 1 && n <= 32 && (dn == 2 || dn == 4 || dn == 8 || dn == 16)) { x.num = n; x.den = dn; }
                     x.bpm0 = jlimit (20.0, 400.0, v[2].replaceCharacter (',', '.').getDoubleValue());
                     x.bpm1 = jlimit (20.0, 400.0, v[3].replaceCharacter (',', '.').getDoubleValue());
+                    x.pattern = x.fullPattern().substring (0, x.num);
                     app.changed (false); rebuild();
                 });
     }
@@ -468,13 +497,13 @@ public:
         rows.push_back ({ U ("Mapear bot\xc3\xb5" "es (MIDI Learn)\xe2\x80\xa6"), {}, [this] { if (onOpenMidi) onOpenMidi(); } });
         rows.push_back ({ "Setlists", {}, {}, true });
         rows.push_back ({ "Receber por Wi-Fi", [] { return "IP deste celular: " + bt::localIpAddress(); }, {} });
-        rows.push_back ({ U ("Abrir pacote (.batpack) do aparelho ou da nuvem\xe2\x80\xa6"), {}, [this]
+        rows.push_back ({ U ("Abrir pacote (.mdspack) do aparelho ou da nuvem\xe2\x80\xa6"), {}, [this]
         {
-            chooser.reset (new FileChooser ("Escolha o pacote .batpack", {}, "*"));
+            chooser.reset (new FileChooser ("Escolha o pacote .mdspack", {}, "*"));
             chooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this] (const FileChooser& fc)
             {
                 auto url = fc.getURLResult(); if (url.isEmpty()) return;
-                auto tmp = app.dataDir.getChildFile ("recebidos").getChildFile ("importado.batpack");
+                auto tmp = app.dataDir.getChildFile ("recebidos").getChildFile ("importado.mdspack");
                 tmp.getParentDirectory().createDirectory(); tmp.deleteFile();
                 String name = URL::removeEscapeChars (url.getFileName());
                 if (auto in = url.createInputStream (URL::InputStreamOptions (URL::ParameterHandling::inAddress)))
@@ -482,7 +511,7 @@ public:
                     FileOutputStream out (tmp);
                     if (out.openedOk()) out.writeFromInputStream (*in, -1);
                 }
-                if (name.endsWithIgnoreCase (".batpack")) { auto named = tmp.getSiblingFile (File::createLegalFileName (name)); named.deleteFile(); if (tmp.moveFileTo (named)) tmp = named; }
+                if (name.endsWithIgnoreCase (".mdspack")) { auto named = tmp.getSiblingFile (File::createLegalFileName (name)); named.deleteFile(); if (tmp.moveFileTo (named)) tmp = named; }
                 app.importPackFile (tmp);
             });
         } });
@@ -495,7 +524,7 @@ public:
                 f.getParentDirectory().createDirectory(); p.save (f); app.loadProject (f);
             });
         } });
-        rows.push_back ({ U ("Batuta 0.1  \xc2\xb7  software livre (GPLv3)"), {}, {}, true });
+        rows.push_back ({ U ("MDS 0.2  \xc2\xb7  software livre (GPLv3)"), {}, {}, true });
         list.refresh();
     }
     void resized() override { list.setBounds (getLocalBounds().reduced (6)); }
@@ -525,14 +554,15 @@ public:
             b->onClick = [this, i] { show (i); };
             addAndMakeVisible (b);
         }
-        addChildComponent (midiOverlay);
-        settings.onOpenMidi = [this]
+        addChildComponent (overlay);
+        app.showOverlay = [this] (String title, Component* c)
         {
-            midiPanel.reset (new MidiPanel (app.engine, [this] { app.save(); }, true, 52));
-            midiOverlay.panel = midiPanel.get(); midiOverlay.addAndMakeVisible (*midiPanel);
-            midiOverlay.setVisible (true); midiOverlay.toFront (false); resized();
+            overlayContent.reset (c);
+            overlay.title = title; overlay.panel = c; overlay.addAndMakeVisible (*c);
+            overlay.setVisible (true); overlay.toFront (false); resized(); overlay.resized(); overlay.repaint();
         };
-        midiOverlay.close.onClick = [this] { closeOverlay(); };
+        settings.onOpenMidi = [this] { app.showOverlay ("Mapear controles MIDI", new MidiPanel (app.engine, [this] { app.save(); }, true, 52)); };
+        overlay.close.onClick = [this] { closeOverlay(); };
         app.refreshAll = [this] { mixer.rebuild(); songs.rebuild(); repaint(); };
         app.toast = [this] (String s) { toastText = s; toastTime = Time::getMillisecondCounter(); repaint(); };
         app.engine.onUiAction = [this] (int action, int index, float v)
@@ -545,12 +575,12 @@ public:
         startTimerHz (30);
         setSize (400, 800);
     }
-    ~Root() override { app.refreshAll = nullptr; app.toast = nullptr; app.engine.onUiAction = nullptr; LookAndFeel::setDefaultLookAndFeel (nullptr); setLookAndFeel (nullptr); }
+    ~Root() override { app.refreshAll = nullptr; app.toast = nullptr; app.showOverlay = nullptr; app.engine.onUiAction = nullptr; LookAndFeel::setDefaultLookAndFeel (nullptr); setLookAndFeel (nullptr); }
 
     bool closeOverlay()
     {
-        if (! midiOverlay.isVisible()) return false;
-        midiOverlay.setVisible (false); midiOverlay.panel = nullptr; midiPanel.reset(); return true;
+        if (! overlay.isVisible()) return false;
+        overlay.setVisible (false); overlay.panel = nullptr; overlayContent.reset(); return true;
     }
     void show (int i)
     {
@@ -565,23 +595,23 @@ public:
         auto bar = r.removeFromBottom (62);
         const int w = bar.getWidth() / 5;
         for (auto* b : tabs) b->setBounds (bar.removeFromLeft (w).reduced (2, 4));
-        for (Component* c : std::initializer_list<Component*> { &stage, &mixer, &pads, &songs, &settings, &midiOverlay }) c->setBounds (r);
+        for (Component* c : std::initializer_list<Component*> { &stage, &mixer, &pads, &songs, &settings, &overlay }) c->setBounds (r);
     }
     void paint (Graphics& g) override { g.fillAll (col::bg); }
     void paintOverChildren (Graphics& g) override
     {
         if (toastText.isEmpty() || Time::getMillisecondCounter() - toastTime > 2600) return;
         auto r = getLocalBounds().reduced (16).withTrimmedTop (84).removeFromTop (60);
-        g.setColour (col::queued); g.fillRoundedRectangle (r.toFloat(), 10.0f);
+        g.setColour (col::queued); g.fillRoundedRectangle (r.toFloat(), ui::radius + 3.0f);
         g.setColour (col::bg); g.setFont (FontOptions (17.0f, Font::bold)); g.drawFittedText (toastText, r.reduced (10, 4), Justification::centred, 2);
     }
 private:
     struct Overlay : Component
     {
         Overlay() { addAndMakeVisible (close); }
-        void paint (Graphics& g) override { g.fillAll (col::bg); g.setColour (col::text); g.setFont (FontOptions (18.0f, Font::bold)); g.drawText ("Mapear controles MIDI", 14, 0, getWidth() - 130, 56, Justification::centredLeft); }
+        void paint (Graphics& g) override { g.fillAll (col::bg); g.setColour (col::text); g.setFont (FontOptions (18.0f, Font::bold)); g.drawFittedText (title, 14, 0, getWidth() - 140, 56, Justification::centredLeft, 2); }
         void resized() override { auto r = getLocalBounds(); close.setBounds (r.removeFromTop (56).removeFromRight (120).reduced (6)); if (panel != nullptr) panel->setBounds (r); }
-        TextButton close { "Fechar" }; Component* panel = nullptr;
+        TextButton close { "Concluir" }; Component* panel = nullptr; String title;
     };
     void timerCallback() override
     {
@@ -592,7 +622,7 @@ private:
     }
     MApp& app; Look look; MidiAutoConnect midiConnect;
     StageScreen stage; MixerScreen mixer; PadsScreen pads; SongsScreen songs; SettingsScreen settings;
-    OwnedArray<TextButton> tabs; Overlay midiOverlay; std::unique_ptr<MidiPanel> midiPanel;
+    OwnedArray<TextButton> tabs; Overlay overlay; std::unique_ptr<Component> overlayContent;
     String toastText; uint32 toastTime = 0;
 };
 
@@ -600,7 +630,7 @@ private:
 class MobileWindow : public DocumentWindow
 {
 public:
-    explicit MobileWindow (MApp& a) : DocumentWindow ("Batuta", col::bg, DocumentWindow::closeButton)
+    explicit MobileWindow (MApp& a) : DocumentWindow ("MDS", col::bg, DocumentWindow::closeButton)
     {
         setUsingNativeTitleBar (true);
         root = new Root (a);
@@ -616,10 +646,10 @@ public:
     Root* root = nullptr;
 };
 
-class BatutaMobileApp : public JUCEApplication
+class MDSMobileApp : public JUCEApplication
 {
 public:
-    const String getApplicationName() override { return "Batuta"; }
+    const String getApplicationName() override { return "MDS"; }
     const String getApplicationVersion() override { return "0.1.0"; }
     bool moreThanOneInstanceAllowed() override { return false; }
 
@@ -627,7 +657,7 @@ public:
     {
         app.reset (new MApp());
         app->engine.forceSplit = true;
-        app->dataDir = File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("Batuta");
+        app->dataDir = File::getSpecialLocation (File::userApplicationDataDirectory).getChildFile ("MDS");
         app->dataDir.createDirectory();
         acquireMulticastLock();
         Desktop::getInstance().setScreenSaverEnabled (false);          // a tela nunca apaga
@@ -670,7 +700,7 @@ public:
         const auto now = Time::getMillisecondCounter();
         if (now - lastQuit < 1500) { quit(); return; }
         lastQuit = now;
-        if (app != nullptr && app->toast) app->toast ("Pressione de novo para sair do Batuta");
+        if (app != nullptr && app->toast) app->toast ("Pressione de novo para sair do MDS");
     }
     void suspended() override { if (app != nullptr) app->save(); }
 private:
@@ -682,4 +712,4 @@ private:
 };
 }
 
-START_JUCE_APPLICATION (mob::BatutaMobileApp)
+START_JUCE_APPLICATION (mob::MDSMobileApp)

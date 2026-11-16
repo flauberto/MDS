@@ -1,4 +1,4 @@
-// Batuta - "Exportar para o celular": pacote .batpack, importacao e envio por Wi-Fi
+// MDS - "Exportar para o celular": pacote .mdspack, importacao e envio por Wi-Fi
 #pragma once
 #include "Engine.h"
 
@@ -9,11 +9,11 @@ constexpr int tcpPort = 47800, udpPort = 47801;
 struct PackResult { bool ok = false; juce::String message; };
 
 // Renderiza cada musica em um arquivo OGG "split stereo" (L = guias, R = VS em mono),
-// converte os one-shots e empacota tudo em um unico arquivo .batpack (zip).
+// converte os one-shots e empacota tudo em um unico arquivo .mdspack (zip).
 PackResult exportPack (const Project& project, const juce::File& dest,
                        std::function<void (float, juce::String)> progress);
 
-// Descompacta um .batpack na biblioteca do aparelho; devolve o project.json resultante.
+// Descompacta um .mdspack na biblioteca do aparelho; devolve o project.json resultante.
 PackResult importPack (const juce::File& pack, const juce::File& libraryDir, juce::File& projectFile);
 
 struct Peer { juce::String name, ip; };

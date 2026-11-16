@@ -42,19 +42,19 @@ static AudioBuffer<float> run (Engine& e, int channels, double seconds, double s
 int main (int argc, char** argv)
 {
     ScopedJuceInitialiser_GUI init;
-    if (argc == 4 && String (argv[1]) == "--export")      // BatutaTest --export setlist.batuta saida.batpack
+    if (argc == 4 && String (argv[1]) == "--export")      // MDSTest --export setlist.batuta saida.mdspack
     {
         Project p; if (! Project::load (File (argv[2]), p)) { std::cout << "nao abriu" << std::endl; return 1; }
         auto r = exportPack (p, File (argv[3]), [] (float f, String s) { std::cout << (int) (f * 100) << "% " << s << std::endl; });
         std::cout << (r.ok ? "ok " : "erro ") << r.message << std::endl; return r.ok ? 0 : 1;
     }
-    if (argc == 4 && String (argv[1]) == "--import")      // BatutaTest --import pacote.batpack pastaBiblioteca
+    if (argc == 4 && String (argv[1]) == "--import")      // MDSTest --import pacote.mdspack pastaBiblioteca
     {
         File pj; auto r = importPack (File (argv[2]), File (argv[3]), pj);
         std::cout << (r.ok ? pj.getFullPathName() : r.message) << std::endl; return r.ok ? 0 : 1;
     }
     const double sr = 48000.0;
-    auto dir = File::getSpecialLocation (File::tempDirectory).getChildFile ("batuta_test"); dir.createDirectory();
+    auto dir = File::getSpecialLocation (File::tempDirectory).getChildFile ("mds_test"); dir.createDirectory();
 
     // ---------- 1. click com andamento fixo, mudanca de formula e rampa ----------
     {
@@ -77,6 +77,20 @@ int main (int argc, char** argv)
         auto tr = [] (double x) { return 60.0 * 8.0 / 120.0 * std::log ((120.0 + 15.0 * x) / 120.0); };
         bool rampOk = true; for (int i = 1; i < 4; ++i) rampOk = rampOk && std::abs (on[(size_t) (15 + i)] - (5.75 + tr (i))) < 0.003;
         CHECK (rampOk, "accelerando 120->240 segue a curva teorica");
+    }
+
+    // ---------- 1b. padrao de click customizado ----------
+    {
+        Engine e (true);
+        Project p; p.voiceMode = 0;
+        auto& s = p.songs[0]; s.countInBars = 0;
+        s.tempo = { { 4, 4, 4, 120, 120 } }; s.tempo[0].pattern = "3012";     // forte, mudo, fraco, normal
+        e.project = p; e.sampleRate = sr; e.prepare (sr, 256);
+        e.play();
+        auto out = run (e, 2, 2.0, sr);
+        auto peak = [&] (double t) { return out.getMagnitude (0, (int) (t * sr), (int) (0.05 * sr)); };
+        CHECK (peak (0.0) > 0.5f && peak (0.5) < 0.001f, "padrao: tempo 1 forte, tempo 2 mudo");
+        CHECK (peak (1.0) > 0.1f && peak (1.0) < 0.6f * peak (1.5), "padrao: tempo 3 fraco, mais baixo que o tempo 4 normal");
     }
 
     // ---------- 2. contagem inicial, cenas e acao de seguimento ----------
@@ -122,7 +136,7 @@ int main (int argc, char** argv)
 
     // ---------- 4. exportar para o celular e reimportar ----------
     {
-        auto pack = dir.getChildFile ("teste.batpack");
+        auto pack = dir.getChildFile ("teste.mdspack");
         auto r = exportPack (p, pack, {});
         CHECK (r.ok && pack.getSize() > 1000, "pacote exportado (" + String (pack.getSize() / 1024) + " kB)");
         File pj; auto lib = dir.getChildFile ("lib");

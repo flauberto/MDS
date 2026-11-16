@@ -13,53 +13,281 @@
       <FILE id="73eed6" name="Model.h" compile="0" resource="0" file="../Source/Engine/Model.h"/>
       <FILE id="9c9ffa" name="Engine.h" compile="0" resource="0" file="../Source/Engine/Engine.h"/>
       <FILE id="5cea7c" name="Sounds.h" compile="0" resource="0" file="../Source/Engine/Sounds.h"/>
+      <FILE id="ca816e" name="SoundIndex.h" compile="0" resource="0" file="../Source/Engine/SoundIndex.h"/>
       <FILE id="6301d1" name="Package.h" compile="0" resource="0" file="../Source/Engine/Package.h"/>
       <FILE id="265fad" name="Common.h" compile="0" resource="0" file="../Source/UI/Common.h"/>
     </GROUP>
     <GROUP id="BtMb05" name="Icon">
       <FILE id="BtIc01" name="icon.png" compile="0" resource="1" file="../Assets/icon.png"/>
     </GROUP>
-    <GROUP id="BtMb04" name="Voices">
-      <FILE id="599928" name="en_1.wav" compile="0" resource="1" file="../Assets/voices/en_1.wav"/>
-      <FILE id="3f868c" name="en_10.wav" compile="0" resource="1" file="../Assets/voices/en_10.wav"/>
-      <FILE id="1c1a09" name="en_11.wav" compile="0" resource="1" file="../Assets/voices/en_11.wav"/>
-      <FILE id="528850" name="en_12.wav" compile="0" resource="1" file="../Assets/voices/en_12.wav"/>
-      <FILE id="dfd3a0" name="en_2.wav" compile="0" resource="1" file="../Assets/voices/en_2.wav"/>
-      <FILE id="e85dca" name="en_3.wav" compile="0" resource="1" file="../Assets/voices/en_3.wav"/>
-      <FILE id="f6b1e7" name="en_4.wav" compile="0" resource="1" file="../Assets/voices/en_4.wav"/>
-      <FILE id="2dd1bc" name="en_5.wav" compile="0" resource="1" file="../Assets/voices/en_5.wav"/>
-      <FILE id="8bd791" name="en_6.wav" compile="0" resource="1" file="../Assets/voices/en_6.wav"/>
-      <FILE id="e40506" name="en_7.wav" compile="0" resource="1" file="../Assets/voices/en_7.wav"/>
-      <FILE id="8277c5" name="en_8.wav" compile="0" resource="1" file="../Assets/voices/en_8.wav"/>
-      <FILE id="f6ecb8" name="en_9.wav" compile="0" resource="1" file="../Assets/voices/en_9.wav"/>
-      <FILE id="ab9496" name="en_cue_0.wav" compile="0" resource="1" file="../Assets/voices/en_cue_0.wav"/>
-      <FILE id="8eb98e" name="en_cue_1.wav" compile="0" resource="1" file="../Assets/voices/en_cue_1.wav"/>
-      <FILE id="3f47c8" name="en_cue_2.wav" compile="0" resource="1" file="../Assets/voices/en_cue_2.wav"/>
-      <FILE id="a5f508" name="en_cue_3.wav" compile="0" resource="1" file="../Assets/voices/en_cue_3.wav"/>
-      <FILE id="d8fafe" name="en_cue_4.wav" compile="0" resource="1" file="../Assets/voices/en_cue_4.wav"/>
-      <FILE id="4eead7" name="en_cue_5.wav" compile="0" resource="1" file="../Assets/voices/en_cue_5.wav"/>
-      <FILE id="f0b5fe" name="en_cue_6.wav" compile="0" resource="1" file="../Assets/voices/en_cue_6.wav"/>
-      <FILE id="b76d92" name="en_cue_7.wav" compile="0" resource="1" file="../Assets/voices/en_cue_7.wav"/>
-      <FILE id="702019" name="pt_1.wav" compile="0" resource="1" file="../Assets/voices/pt_1.wav"/>
-      <FILE id="fc590a" name="pt_10.wav" compile="0" resource="1" file="../Assets/voices/pt_10.wav"/>
-      <FILE id="2d4e06" name="pt_11.wav" compile="0" resource="1" file="../Assets/voices/pt_11.wav"/>
-      <FILE id="2a8ddc" name="pt_12.wav" compile="0" resource="1" file="../Assets/voices/pt_12.wav"/>
-      <FILE id="d6ce74" name="pt_2.wav" compile="0" resource="1" file="../Assets/voices/pt_2.wav"/>
-      <FILE id="1292d7" name="pt_3.wav" compile="0" resource="1" file="../Assets/voices/pt_3.wav"/>
-      <FILE id="bb5eec" name="pt_4.wav" compile="0" resource="1" file="../Assets/voices/pt_4.wav"/>
-      <FILE id="9d765e" name="pt_5.wav" compile="0" resource="1" file="../Assets/voices/pt_5.wav"/>
-      <FILE id="82077f" name="pt_6.wav" compile="0" resource="1" file="../Assets/voices/pt_6.wav"/>
-      <FILE id="959a12" name="pt_7.wav" compile="0" resource="1" file="../Assets/voices/pt_7.wav"/>
-      <FILE id="06277f" name="pt_8.wav" compile="0" resource="1" file="../Assets/voices/pt_8.wav"/>
-      <FILE id="67b517" name="pt_9.wav" compile="0" resource="1" file="../Assets/voices/pt_9.wav"/>
-      <FILE id="99f5ee" name="pt_cue_0.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_0.wav"/>
-      <FILE id="5d2eef" name="pt_cue_1.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_1.wav"/>
-      <FILE id="e6a8cb" name="pt_cue_2.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_2.wav"/>
-      <FILE id="737f66" name="pt_cue_3.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_3.wav"/>
-      <FILE id="6995ce" name="pt_cue_4.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_4.wav"/>
-      <FILE id="9b325d" name="pt_cue_5.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_5.wav"/>
-      <FILE id="6aa469" name="pt_cue_6.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_6.wav"/>
-      <FILE id="252f14" name="pt_cue_7.wav" compile="0" resource="1" file="../Assets/voices/pt_cue_7.wav"/>
+    <GROUP id="BtMb04" name="Sounds">
+      <FILE id="b34c3a" name="ck_Blip_a.wav" compile="0" resource="1" file="../Assets/sounds/ck_Blip_a.wav"/>
+      <FILE id="459404" name="ck_Blip_e.wav" compile="0" resource="1" file="../Assets/sounds/ck_Blip_e.wav"/>
+      <FILE id="0bbf66" name="ck_Blip_q.wav" compile="0" resource="1" file="../Assets/sounds/ck_Blip_q.wav"/>
+      <FILE id="4a3b12" name="ck_Blip_s.wav" compile="0" resource="1" file="../Assets/sounds/ck_Blip_s.wav"/>
+      <FILE id="005924" name="ck_Classic_a.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Classic_a.wav"/>
+      <FILE id="d57b81" name="ck_Classic_e.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Classic_e.wav"/>
+      <FILE id="0fe135" name="ck_Classic_q.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Classic_q.wav"/>
+      <FILE id="a78eb0" name="ck_Classic_s.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Classic_s.wav"/>
+      <FILE id="02d00a" name="ck_Cowbell_a.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Cowbell_a.wav"/>
+      <FILE id="4e87e5" name="ck_Cowbell_e.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Cowbell_e.wav"/>
+      <FILE id="2301cd" name="ck_Cowbell_q.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Cowbell_q.wav"/>
+      <FILE id="b84573" name="ck_Cowbell_s.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Cowbell_s.wav"/>
+      <FILE id="05345f" name="ck_Digital_a.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Digital_a.wav"/>
+      <FILE id="9778dc" name="ck_Digital_s.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Digital_s.wav"/>
+      <FILE id="675c4a" name="ck_Gentle_a.wav" compile="0" resource="1" file="../Assets/sounds/ck_Gentle_a.wav"/>
+      <FILE id="8b92ce" name="ck_Gentle_e.wav" compile="0" resource="1" file="../Assets/sounds/ck_Gentle_e.wav"/>
+      <FILE id="5381fe" name="ck_Gentle_q.wav" compile="0" resource="1" file="../Assets/sounds/ck_Gentle_q.wav"/>
+      <FILE id="b94fa4" name="ck_Gentle_s.wav" compile="0" resource="1" file="../Assets/sounds/ck_Gentle_s.wav"/>
+      <FILE id="c5d8bd" name="ck_Percussive_a.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Percussive_a.wav"/>
+      <FILE id="dc90ae" name="ck_Percussive_e.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Percussive_e.wav"/>
+      <FILE id="ab7c74" name="ck_Percussive_q.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Percussive_q.wav"/>
+      <FILE id="d3249f" name="ck_Percussive_s.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Percussive_s.wav"/>
+      <FILE id="5ac1d1" name="ck_Saw_a.wav" compile="0" resource="1" file="../Assets/sounds/ck_Saw_a.wav"/>
+      <FILE id="fb0d9c" name="ck_Saw_e.wav" compile="0" resource="1" file="../Assets/sounds/ck_Saw_e.wav"/>
+      <FILE id="c1f316" name="ck_Saw_q.wav" compile="0" resource="1" file="../Assets/sounds/ck_Saw_q.wav"/>
+      <FILE id="53e5e4" name="ck_Woodblock_a.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Woodblock_a.wav"/>
+      <FILE id="221526" name="ck_Woodblock_e.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Woodblock_e.wav"/>
+      <FILE id="62d9bd" name="ck_Woodblock_q.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Woodblock_q.wav"/>
+      <FILE id="e19669" name="ck_Woodblock_s.wav" compile="0" resource="1"
+            file="../Assets/sounds/ck_Woodblock_s.wav"/>
+      <FILE id="dd1c64" name="cue_en_acapella.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_acapella.ogg"/>
+      <FILE id="a65cca" name="cue_en_ad_lib.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_ad_lib.ogg"/>
+      <FILE id="4e5151" name="cue_en_all_in.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_all_in.ogg"/>
+      <FILE id="892455" name="cue_en_bass.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_bass.ogg"/>
+      <FILE id="ebedc6" name="cue_en_big_ending.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_big_ending.ogg"/>
+      <FILE id="7c7b40" name="cue_en_break.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_break.ogg"/>
+      <FILE id="e47dd3" name="cue_en_breakdown.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_breakdown.ogg"/>
+      <FILE id="83842e" name="cue_en_bridge.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_bridge.ogg"/>
+      <FILE id="9e1e8c" name="cue_en_bridge_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_bridge_1.ogg"/>
+      <FILE id="732e06" name="cue_en_bridge_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_bridge_2.ogg"/>
+      <FILE id="f695da" name="cue_en_bridge_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_bridge_3.ogg"/>
+      <FILE id="a0538b" name="cue_en_bridge_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_bridge_4.ogg"/>
+      <FILE id="e7c2c1" name="cue_en_build.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_build.ogg"/>
+      <FILE id="763fac" name="cue_en_chorus.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_chorus.ogg"/>
+      <FILE id="cdb13e" name="cue_en_chorus_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_chorus_1.ogg"/>
+      <FILE id="882555" name="cue_en_chorus_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_chorus_2.ogg"/>
+      <FILE id="3f1605" name="cue_en_chorus_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_chorus_3.ogg"/>
+      <FILE id="763655" name="cue_en_chorus_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_chorus_4.ogg"/>
+      <FILE id="2f57ea" name="cue_en_drums.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_drums.ogg"/>
+      <FILE id="7da4b0" name="cue_en_drums_in.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_drums_in.ogg"/>
+      <FILE id="60ad46" name="cue_en_ending.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_ending.ogg"/>
+      <FILE id="e96376" name="cue_en_exhortation.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_exhortation.ogg"/>
+      <FILE id="b80df5" name="cue_en_hits.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_hits.ogg"/>
+      <FILE id="102dfb" name="cue_en_hold.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_hold.ogg"/>
+      <FILE id="e7dd43" name="cue_en_instrumental.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_instrumental.ogg"/>
+      <FILE id="75fc68" name="cue_en_interlude.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_interlude.ogg"/>
+      <FILE id="ac7147" name="cue_en_intro.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_intro.ogg"/>
+      <FILE id="6b1428" name="cue_en_key_change_down.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_key_change_down.ogg"/>
+      <FILE id="1082da" name="cue_en_key_change_up.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_key_change_up.ogg"/>
+      <FILE id="7e11ec" name="cue_en_keys.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_keys.ogg"/>
+      <FILE id="7bdf82" name="cue_en_last_time.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_last_time.ogg"/>
+      <FILE id="364edb" name="cue_en_outro.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_outro.ogg"/>
+      <FILE id="36de33" name="cue_en_post_chorus.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_post_chorus.ogg"/>
+      <FILE id="1b5da0" name="cue_en_pre_chorus.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_pre_chorus.ogg"/>
+      <FILE id="a4b939" name="cue_en_pre_chorus_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_pre_chorus_1.ogg"/>
+      <FILE id="189186" name="cue_en_pre_chorus_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_pre_chorus_2.ogg"/>
+      <FILE id="65e7cc" name="cue_en_pre_chorus_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_pre_chorus_3.ogg"/>
+      <FILE id="253539" name="cue_en_pre_chorus_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_pre_chorus_4.ogg"/>
+      <FILE id="818edb" name="cue_en_rap.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_rap.ogg"/>
+      <FILE id="fffa36" name="cue_en_refrain.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_refrain.ogg"/>
+      <FILE id="d9608e" name="cue_en_slowly_build.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_slowly_build.ogg"/>
+      <FILE id="f2621b" name="cue_en_softly.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_softly.ogg"/>
+      <FILE id="2b9320" name="cue_en_solo.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_solo.ogg"/>
+      <FILE id="0dbf70" name="cue_en_swell.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_swell.ogg"/>
+      <FILE id="dee18f" name="cue_en_tag.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_tag.ogg"/>
+      <FILE id="7d05d0" name="cue_en_turnaround.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_turnaround.ogg"/>
+      <FILE id="5f2069" name="cue_en_vamp.ogg" compile="0" resource="1" file="../Assets/sounds/cue_en_vamp.ogg"/>
+      <FILE id="aa069e" name="cue_en_verse.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse.ogg"/>
+      <FILE id="ac88a9" name="cue_en_verse_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse_1.ogg"/>
+      <FILE id="692181" name="cue_en_verse_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse_2.ogg"/>
+      <FILE id="c6a07c" name="cue_en_verse_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse_3.ogg"/>
+      <FILE id="10c0cd" name="cue_en_verse_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse_4.ogg"/>
+      <FILE id="2dd14d" name="cue_en_verse_5.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse_5.ogg"/>
+      <FILE id="c94eb0" name="cue_en_verse_6.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_verse_6.ogg"/>
+      <FILE id="b368ce" name="cue_en_worship_freely.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_en_worship_freely.ogg"/>
+      <FILE id="ba7857" name="cue_pt_acapella.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_acapella.ogg"/>
+      <FILE id="19ba86" name="cue_pt_all_in.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_all_in.ogg"/>
+      <FILE id="03ea07" name="cue_pt_bass.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_bass.ogg"/>
+      <FILE id="99f327" name="cue_pt_big_ending.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_big_ending.ogg"/>
+      <FILE id="b9fe4b" name="cue_pt_break.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_break.ogg"/>
+      <FILE id="71b392" name="cue_pt_breakdown.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_breakdown.ogg"/>
+      <FILE id="a9b881" name="cue_pt_bridge.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_bridge.ogg"/>
+      <FILE id="94e1b0" name="cue_pt_bridge_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_bridge_1.ogg"/>
+      <FILE id="6ff623" name="cue_pt_bridge_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_bridge_2.ogg"/>
+      <FILE id="093c87" name="cue_pt_bridge_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_bridge_3.ogg"/>
+      <FILE id="cf96e2" name="cue_pt_bridge_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_bridge_4.ogg"/>
+      <FILE id="d41eb8" name="cue_pt_build.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_build.ogg"/>
+      <FILE id="d108f5" name="cue_pt_channel.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_channel.ogg"/>
+      <FILE id="b8e02e" name="cue_pt_chorus.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_chorus.ogg"/>
+      <FILE id="250379" name="cue_pt_chorus_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_chorus_1.ogg"/>
+      <FILE id="543a51" name="cue_pt_chorus_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_chorus_2.ogg"/>
+      <FILE id="435c00" name="cue_pt_chorus_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_chorus_3.ogg"/>
+      <FILE id="43408e" name="cue_pt_chorus_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_chorus_4.ogg"/>
+      <FILE id="9bbad4" name="cue_pt_click.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_click.ogg"/>
+      <FILE id="e02496" name="cue_pt_drums.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_drums.ogg"/>
+      <FILE id="030c34" name="cue_pt_drums_in.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_drums_in.ogg"/>
+      <FILE id="5d553c" name="cue_pt_ending.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_ending.ogg"/>
+      <FILE id="31414d" name="cue_pt_exhortation.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_exhortation.ogg"/>
+      <FILE id="7361f7" name="cue_pt_guitar.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_guitar.ogg"/>
+      <FILE id="6176e9" name="cue_pt_hits.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_hits.ogg"/>
+      <FILE id="b005b3" name="cue_pt_hold.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_hold.ogg"/>
+      <FILE id="703206" name="cue_pt_instrumental.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_instrumental.ogg"/>
+      <FILE id="6cb151" name="cue_pt_interlude.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_interlude.ogg"/>
+      <FILE id="f5a094" name="cue_pt_intro.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_intro.ogg"/>
+      <FILE id="d93572" name="cue_pt_key_change_down.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_key_change_down.ogg"/>
+      <FILE id="7209fe" name="cue_pt_key_change_up.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_key_change_up.ogg"/>
+      <FILE id="af7b60" name="cue_pt_keys.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_keys.ogg"/>
+      <FILE id="18d910" name="cue_pt_last_time.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_last_time.ogg"/>
+      <FILE id="2da9b1" name="cue_pt_outro.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_outro.ogg"/>
+      <FILE id="29cb5c" name="cue_pt_pad.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_pad.ogg"/>
+      <FILE id="4cfde2" name="cue_pt_post_chorus.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_post_chorus.ogg"/>
+      <FILE id="e41ca7" name="cue_pt_pre_chorus.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_pre_chorus.ogg"/>
+      <FILE id="df4a48" name="cue_pt_pre_chorus_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_pre_chorus_1.ogg"/>
+      <FILE id="da2998" name="cue_pt_pre_chorus_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_pre_chorus_2.ogg"/>
+      <FILE id="02e22b" name="cue_pt_pre_chorus_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_pre_chorus_3.ogg"/>
+      <FILE id="2b7aad" name="cue_pt_pre_chorus_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_pre_chorus_4.ogg"/>
+      <FILE id="20fe18" name="cue_pt_rap.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_rap.ogg"/>
+      <FILE id="54ff20" name="cue_pt_refrain.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_refrain.ogg"/>
+      <FILE id="bd9ad1" name="cue_pt_slowly_build.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_slowly_build.ogg"/>
+      <FILE id="5c389d" name="cue_pt_softly.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_softly.ogg"/>
+      <FILE id="2416bc" name="cue_pt_solo.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_solo.ogg"/>
+      <FILE id="aa40f1" name="cue_pt_swell.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_swell.ogg"/>
+      <FILE id="26f9bd" name="cue_pt_tag.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_tag.ogg"/>
+      <FILE id="e47250" name="cue_pt_turnaround.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_turnaround.ogg"/>
+      <FILE id="d104b1" name="cue_pt_vamp.ogg" compile="0" resource="1" file="../Assets/sounds/cue_pt_vamp.ogg"/>
+      <FILE id="123d18" name="cue_pt_verse.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse.ogg"/>
+      <FILE id="648ef7" name="cue_pt_verse_1.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse_1.ogg"/>
+      <FILE id="bae3d9" name="cue_pt_verse_2.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse_2.ogg"/>
+      <FILE id="35c362" name="cue_pt_verse_3.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse_3.ogg"/>
+      <FILE id="776d7c" name="cue_pt_verse_4.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse_4.ogg"/>
+      <FILE id="f7a562" name="cue_pt_verse_5.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse_5.ogg"/>
+      <FILE id="c6ec4a" name="cue_pt_verse_6.ogg" compile="0" resource="1"
+            file="../Assets/sounds/cue_pt_verse_6.ogg"/>
+      <FILE id="1705b0" name="num_en_1.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_1.ogg"/>
+      <FILE id="51cba8" name="num_en_2.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_2.ogg"/>
+      <FILE id="67cadc" name="num_en_3.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_3.ogg"/>
+      <FILE id="c75e66" name="num_en_4.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_4.ogg"/>
+      <FILE id="9afa9f" name="num_en_5.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_5.ogg"/>
+      <FILE id="bfc775" name="num_en_6.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_6.ogg"/>
+      <FILE id="94a8e9" name="num_en_7.ogg" compile="0" resource="1" file="../Assets/sounds/num_en_7.ogg"/>
+      <FILE id="4b370a" name="num_pt_1.ogg" compile="0" resource="1" file="../Assets/sounds/num_pt_1.ogg"/>
+      <FILE id="6d03f9" name="num_pt_2.ogg" compile="0" resource="1" file="../Assets/sounds/num_pt_2.ogg"/>
+      <FILE id="a84cfd" name="num_pt_3.ogg" compile="0" resource="1" file="../Assets/sounds/num_pt_3.ogg"/>
+      <FILE id="a3d1ad" name="num_pt_4.ogg" compile="0" resource="1" file="../Assets/sounds/num_pt_4.ogg"/>
+      <FILE id="2b5c40" name="num_pt_5.ogg" compile="0" resource="1" file="../Assets/sounds/num_pt_5.ogg"/>
+      <FILE id="e32502" name="num_pt_6.ogg" compile="0" resource="1" file="../Assets/sounds/num_pt_6.ogg"/>
     </GROUP>
   </MAINGROUP>
   <MODULES>
@@ -83,11 +311,10 @@
                    androidBluetoothScanNeeded="1" androidBluetoothConnectNeeded="1"
                    androidOtherPermissions="android.permission.CHANGE_WIFI_MULTICAST_STATE android.permission.ACCESS_WIFI_STATE android.permission.ACCESS_NETWORK_STATE android.permission.WAKE_LOCK"
                    androidKeyStore="../../../batuta.keystore" androidKeyStorePass="batuta"
-                   androidKeyAlias="batuta" androidKeyAliasPass="batuta" androidVersionCode="2"
+                   androidKeyAlias="batuta" androidKeyAliasPass="batuta" androidVersionCode="3"
                    smallIcon="BtIc01" bigIcon="BtIc01" androidBluetoothAdvertiseNeeded="1">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="MDS"
-                       headerPath="../../../Source;../../../third_party/link/include;../../../third_party/link/modules/asio-standalone/asio/include"
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="MDS" headerPath="../../../Source;../../../third_party/link/include;../../../third_party/link/modules/asio-standalone/asio/include"
                        androidArchitectures="arm64-v8a armeabi-v7a x86_64"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="MDS"
                        headerPath="../../../Source;../../../third_party/link/include;../../../third_party/link/modules/asio-standalone/asio/include"

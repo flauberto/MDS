@@ -144,6 +144,7 @@ void Engine::setProject (const Project& p)
 void Engine::selectSong (int index)
 {
     songIndex = jlimit (0, (int) project.songs.size() - 1, index);
+    if (project.kitFor (song()) != loadedKit) rebuildSamples();
     reloadSong();
     push ({ cPadKey, song().padKey, 0 });
 }
@@ -164,21 +165,41 @@ void Engine::rebuildSamples()
     auto nb = std::make_unique<SampleBank>();
     if (! exportLinear)
     {
-        for (int k = 0; k < 3; ++k) nb->s[sClickAccent + k] = synth::click (project.clickSound, k, sampleRate);
-        WavAudioFormat wav;
-        auto loadVoice = [&] (const String& resName) -> Sample
+        auto loadRes = [&] (const String& resName) -> Sample
         {
             int size = 0;
             if (auto* data = BinaryData::getNamedResource (resName.toRawUTF8(), size))
             {
-                std::unique_ptr<AudioFormatReader> r (wav.createReaderFor (new MemoryInputStream (data, (size_t) size, false), true));
+                std::unique_ptr<AudioFormatReader> r (formats.createReaderFor (std::make_unique<MemoryInputStream> (data, (size_t) size, false)));
                 return synth::loadMono (r.get(), sampleRate);
             }
             return {};
         };
-        const String lang = project.voiceLang == 1 ? "en" : "pt";
-        for (int i = 0; i < 12; ++i) nb->s[sVoiceNum + i] = loadVoice (lang + "_" + String (i + 1) + "_wav");
-        for (int i = 0; i < 8; ++i)  nb->s[sVoiceCue + i] = loadVoice (lang + "_cue_" + String (i) + "_wav");
+        // click: forte, tempo, colcheia e semicolcheia do kit; o que faltar no kit e derivado do som mais proximo
+        const String kit = project.kitFor (song());
+        loadedKit = kit;
+        const char* part[4] = { "a", "q", "e", "s" };
+        for (int k = 0; k < 4; ++k) nb->s[sClickAccent + k] = loadRes ("ck_" + kit + "_" + part[k] + "_wav");
+        auto scaled = [] (Sample x, float g) { for (auto& v : x) v *= g; return x; };
+        if (nb->s[sClickAccent].empty() && nb->s[sClickBeat].empty())
+            for (int k = 0; k < 3; ++k) nb->s[sClickAccent + k] = synth::click (0, k, sampleRate);
+        if (nb->s[sClickBeat].empty())      nb->s[sClickBeat] = scaled (! nb->s[sClickEighth].empty() ? nb->s[sClickEighth] : (! nb->s[sClickSixteenth].empty() ? nb->s[sClickSixteenth] : nb->s[sClickAccent]), 1.0f);
+        if (nb->s[sClickAccent].empty())    nb->s[sClickAccent] = nb->s[sClickBeat];
+        if (nb->s[sClickEighth].empty())    nb->s[sClickEighth] = ! nb->s[sClickSixteenth].empty() ? nb->s[sClickSixteenth] : scaled (nb->s[sClickBeat], 0.6f);
+        if (nb->s[sClickSixteenth].empty()) nb->s[sClickSixteenth] = scaled (nb->s[sClickEighth], 0.75f);
+
+        // vozes de contagem e guias: decodificadas uma vez por idioma/taxa de amostragem
+        if (loadedLang != project.voiceLang || loadedRate != sampleRate)
+        {
+            const String lang = project.voiceLang == 1 ? "en" : "pt";
+            numCache.assign (12, {}); cueCache.assign ((size_t) numCues(), {});
+            for (int i = 0; i < 12; ++i) numCache[(size_t) i] = loadRes ("num_" + lang + "_" + String (i + 1) + "_ogg");
+            for (int i = 0; i < numCues(); ++i) cueCache[(size_t) i] = loadRes ("cue_" + lang + "_" + cueId (i) + "_ogg");
+            loadedLang = project.voiceLang; loadedRate = sampleRate;
+        }
+        for (int i = 0; i < 12; ++i) nb->s[sVoiceNum + i] = numCache[(size_t) i];
+        nb->cues = cueCache;
+
         for (int i = 0; i < numPads; ++i)
         {
             auto& d = project.pads[i];
@@ -237,7 +258,7 @@ void Engine::syncParams()
             rt.tempo = s.tempo; rt.countIn = jlimit (0, 8, s.countInBars); rt.subdiv = jlimit (1, 4, s.subdiv);
             rt.scenes = s.scenes;
             rt.sceneCue.clear();
-            for (auto& sc : s.scenes) rt.sceneCue.push_back (cueNames().indexOf (sc.cue));
+            for (auto& sc : s.scenes) rt.sceneCue.push_back (cueIndex (sc.cue));
             for (size_t t = 0; t < s.tracks.size(); ++t)
             {
                 auto& tr = s.tracks[t]; auto& r = rt.tracks[t];
@@ -282,6 +303,8 @@ void Engine::launchClip (int s, int t)      { push ({ cClip, s, t }); }
 void Engine::stopTrack (int t)              { push ({ cStopTrack, t, 0 }); }
 void Engine::triggerPad (int p)             { push ({ cPad, p, 0 }); }
 void Engine::setAutoPad (bool on)           { autoPad = on; push ({ cPadOn, on ? 1 : 0, 0 }); }
+void Engine::speakCue (int c)               { push ({ cCue, c, 0 }); }
+void Engine::previewClick()                 { push ({ cPreview, 0, 0 }); }
 
 void Engine::performAction (int action, int index, float value)
 {
@@ -374,11 +397,15 @@ double Engine::bpmAt (double b) const
 
 void Engine::fire (int id, int bus, int delay, float gain)
 {
-    if (bank == nullptr || id < 0 || id >= sCount || bank->s[id].empty()) return;
+    if (bank == nullptr) return;
+    const Sample* smp = nullptr;
+    if (id >= sCueBase) { if (id - sCueBase < (int) bank->cues.size()) smp = &bank->cues[(size_t) (id - sCueBase)]; }
+    else if (id >= 0 && id < sCount) smp = &bank->s[id];
+    if (smp == nullptr || smp->empty()) return;
     for (auto& v : voices)
         if (v.data == nullptr)
         {
-            v.data = bank->s[id].data(); v.len = (int) bank->s[id].size(); v.pos = 0; v.delay = delay; v.bus = bus; v.gain = gain;
+            v.data = smp->data(); v.len = (int) smp->size(); v.pos = 0; v.delay = delay; v.bus = bus; v.gain = gain;
             return;
         }
 }
@@ -446,7 +473,7 @@ void Engine::barEvent()
                 sceneQueued = target;
             }
             else if (sceneBars == sc.bars - 1 && target >= 0 && target != scene && rt.voiceMode != 0)
-                fire (sVoiceCue + rt.sceneCue[(size_t) target], busVoice, 0);
+                fire (sCueBase + rt.sceneCue[(size_t) target], busVoice, 0);
         }
     }
     if (sceneQueued >= 0) applyScene (sceneQueued);
@@ -476,7 +503,7 @@ void Engine::handle (const Cmd& c)
             {
                 sceneQueued = c.a;
                 if (! tPlaying) startTransport();
-                else if (rt.voiceMode != 0 && c.a != scene) fire (sVoiceCue + rt.sceneCue[(size_t) c.a], busVoice, 0);
+                else if (rt.voiceMode != 0 && c.a != scene) fire (sCueBase + rt.sceneCue[(size_t) c.a], busVoice, 0);
             }
             break;
         case cClip:
@@ -491,6 +518,11 @@ void Engine::handle (const Cmd& c)
             break;
         case cPad:
             if (c.a >= 0 && c.a < numPads) { fire (sPad + c.a, busShots, 0); uiPadFlash[c.a]++; }
+            break;
+        case cCue:     fire (sCueBase + c.a, busVoice, 0); break;
+        case cPreview:
+            fire (sClickAccent, busClick, 0); fire (sClickBeat, busClick, (int) (0.3 * sampleRate));
+            fire (sClickEighth, busSub, (int) (0.45 * sampleRate)); fire (sClickBeat, busClick, (int) (0.6 * sampleRate));
             break;
         case cPadOn:
         case cPadKey:
@@ -630,7 +662,7 @@ void Engine::process (float* const* out, int numOut, int n)
                     if ((rt.voiceMode == 2 || (rt.voiceMode == 1 && barNum < 0)) && pulse < 12) fire (sVoiceNum + pulse, busVoice, i);
                     uiBeatInBar = pulse;
                 }
-                else if (rt.clickOn) fire (sClickSub, busSub, i);
+                else if (rt.clickOn) fire (rt.subdiv == 4 && tick % 4 != 2 ? sClickSixteenth : sClickEighth, busSub, i);
                 ++tick;
             }
             bpm = linkTempo > 0 ? linkTempo : bpmAt (beat);

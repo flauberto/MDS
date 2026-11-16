@@ -8,9 +8,10 @@ namespace bt
 using Sample = std::vector<float>;
 
 // Indices no banco de amostras
-enum SampleId { sClickAccent = 0, sClickBeat, sClickSub, sVoiceNum /*12*/ = 3, sVoiceCue = 15 /*8*/, sPad = 23 /*16*/, sCount = 39 };
+enum SampleId { sClickAccent = 0, sClickBeat, sClickEighth, sClickSixteenth, sVoiceNum /*12*/ = 4, sPad = 16 /*16*/, sCount = 32,
+                sCueBase = 1000 /* + indice da guia */ };
 
-struct SampleBank { Sample s[sCount]; };
+struct SampleBank { Sample s[sCount]; std::vector<Sample> cues; };
 
 namespace synth
 {

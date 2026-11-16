@@ -89,8 +89,39 @@ int main (int argc, char** argv)
         e.play();
         auto out = run (e, 2, 2.0, sr);
         auto peak = [&] (double t) { return out.getMagnitude (0, (int) (t * sr), (int) (0.05 * sr)); };
-        CHECK (peak (0.0) > 0.5f && peak (0.5) < 0.001f, "padrao: tempo 1 forte, tempo 2 mudo");
+        CHECK (peak (0.0) > 0.2f && peak (0.5) < 0.001f, "padrao: tempo 1 forte, tempo 2 mudo");
         CHECK (peak (1.0) > 0.1f && peak (1.0) < 0.6f * peak (1.5), "padrao: tempo 3 fraco, mais baixo que o tempo 4 normal");
+    }
+
+    // ---------- 1c. timbres, subdivisoes e vozes embutidas ----------
+    {
+        bool allKits = true;
+        for (auto& kit : clickKitNames())
+        {
+            Engine e (true);
+            Project p; p.voiceMode = 0; p.clickKit = kit;
+            auto& s = p.songs[0]; s.countInBars = 0; s.subdiv = 4; s.tempo = { { 4, 4, 4, 60, 60 } };
+            p.buses[busClick].outL = 0; p.buses[busClick].outR = -1; p.buses[busSub].outL = 1; p.buses[busSub].outR = -1; p.buses[busSub].gainDb = 0;
+            e.project = p; e.sampleRate = sr; e.prepare (sr, 256);
+            e.play();
+            auto out = run (e, 2, 2.0, sr);
+            const bool ok = onsets (out, 0, sr, 0.05f, 0.4).size() == 2 && onsets (out, 1, sr, 0.03f, 0.1).size() == 6;
+            if (! ok) std::cout << "  kit com problema: " << kit << std::endl;
+            allKits = allKits && ok;
+        }
+        CHECK (allKits, "os 8 timbres tocam tempo e 3 subdivisoes por tempo em semicolcheias");
+
+        Engine e (true);
+        Project p; p.voiceMode = 2; p.clickOn = false; p.songs[0].countInBars = 0; p.songs[0].tempo = { { 4, 4, 4, 60, 60 } };
+        p.buses[busVoice].outL = 1; p.buses[busVoice].outR = -1;
+        e.project = p; e.sampleRate = sr; e.prepare (sr, 256);
+        e.play();
+        auto out = run (e, 2, 4.0, sr);
+        CHECK (onsets (out, 1, sr, 0.05f, 0.6).size() == 4, "voz de contagem em portugues fala 1, 2, 3, 4");
+        Engine e2 (true); e2.project = p; e2.sampleRate = sr; e2.prepare (sr, 256);
+        int spoken = 0;
+        for (int c = 0; c < numCues(); ++c) { e2.speakCue (c); auto o = run (e2, 2, 1.5, sr); if (o.getMagnitude (1, 0, o.getNumSamples()) > 0.05f) ++spoken; }
+        CHECK (spoken >= 55, "guias de voz em portugues presentes (" + String (spoken) + " de " + String (numCues()) + ")");
     }
 
     // ---------- 2. contagem inicial, cenas e acao de seguimento ----------

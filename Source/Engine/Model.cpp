@@ -1,4 +1,5 @@
 #include "Model.h"
+#include "SoundIndex.h"
 
 namespace bt
 {
@@ -9,22 +10,31 @@ const StringArray& keyNames()
     static StringArray a { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B" };
     return a;
 }
-const StringArray& cueNames()
+int numCues() { return kNumCues; }
+int cueIndex (const String& id)
 {
-    static StringArray a { "Intro", "Verso", "Pre-refrao", "Refrao", "Ponte", "Solo", "Interludio", "Final" };
-    return a;
+    for (int i = 0; i < kNumCues; ++i) if (id == kCues[i].id) return i;
+    return -1;
 }
+String cueId (int i) { return i >= 0 && i < kNumCues ? String (kCues[i].id) : String(); }
+String cueLabel (int i, int lang) { return i >= 0 && i < kNumCues ? String::fromUTF8 (lang == 1 ? kCues[i].en : kCues[i].pt) : String(); }
+int cueGroup (int i) { return i >= 0 && i < kNumCues ? kCues[i].group : 0; }
+StringArray clickKitNames() { StringArray a; for (int i = 0; i < kNumClickKits; ++i) a.add (kClickKits[i]); return a; }
+
+// guias gravadas por versoes anteriores (nomes em portugues) -> identificadores atuais
+static String migrateCue (const String& c)
+{
+    static const char* old[][2] = { { "Intro", "intro" }, { "Verso", "verse" }, { "Pre-refrao", "pre_chorus" }, { "Refrao", "chorus" },
+                                    { "Ponte", "bridge" }, { "Solo", "solo" }, { "Interludio", "interlude" }, { "Final", "ending" } };
+    for (auto& o : old) if (c == o[0]) return o[1];
+    return c;
+}
+
 const StringArray& builtinPadNames()
 {
     static StringArray a { "Shaker", "Palma", "Sub drop", "Riser", "Impacto", "Bumbo", "Pandeiro", "Swell" };
     return a;
 }
-const StringArray& clickSoundNames()
-{
-    static StringArray a { "Digital", "Madeira", "Cowbell", "Beep" };
-    return a;
-}
-
 String actionName (int action, int index)
 {
     switch (action)
@@ -79,13 +89,13 @@ var Project::toVar() const
 {
     var p = obj();
     set (p, "format", 1); set (p, "name", name);
-    set (p, "clickSound", clickSound); set (p, "voiceMode", voiceMode); set (p, "voiceLang", voiceLang); set (p, "clickOn", clickOn);
+    set (p, "clickKit", clickKit); set (p, "favKits", var (favKits)); set (p, "voiceMode", voiceMode); set (p, "voiceLang", voiceLang); set (p, "clickOn", clickOn);
 
     Array<var> sa;
     for (auto& s : songs)
     {
         var sv = obj();
-        set (sv, "name", s.name); set (sv, "countIn", s.countInBars); set (sv, "subdiv", s.subdiv); set (sv, "padKey", s.padKey);
+        set (sv, "name", s.name); set (sv, "countIn", s.countInBars); set (sv, "subdiv", s.subdiv); set (sv, "padKey", s.padKey); set (sv, "clickKit", s.clickKit);
         Array<var> ta;
         for (auto& b : s.tempo) { var t = obj(); set (t, "bars", b.bars); set (t, "num", b.num); set (t, "den", b.den); set (t, "bpm0", b.bpm0); set (t, "bpm1", b.bpm1); set (t, "pattern", b.pattern); ta.add (t); }
         set (sv, "tempo", ta);
@@ -126,12 +136,14 @@ Project Project::fromVar (const var& p)
 {
     Project r;
     r.name = getS (p, "name", "Setlist");
-    r.clickSound = get (p, "clickSound", 0); r.voiceMode = get (p, "voiceMode", 1); r.voiceLang = get (p, "voiceLang", 0); r.clickOn = get (p, "clickOn", true);
+    r.clickKit = getS (p, "clickKit", "Classic"); if (! clickKitNames().contains (r.clickKit)) r.clickKit = "Classic";
+    for (auto& f : arr (p, "favKits")) if (clickKitNames().contains (f.toString())) r.favKits.addIfNotAlreadyThere (f.toString());
+    r.voiceMode = get (p, "voiceMode", 1); r.voiceLang = get (p, "voiceLang", 0); r.clickOn = get (p, "clickOn", true);
     r.songs.clear();
     for (auto& sv : arr (p, "songs"))
     {
         Song s; s.tempo.clear();
-        s.name = getS (sv, "name", "Musica"); s.countInBars = get (sv, "countIn", 1); s.subdiv = jlimit (1, 4, get (sv, "subdiv", 1)); s.padKey = get (sv, "padKey", -1);
+        s.name = getS (sv, "name", "Musica"); s.countInBars = get (sv, "countIn", 1); s.subdiv = jlimit (1, 4, get (sv, "subdiv", 1)); s.padKey = get (sv, "padKey", -1); s.clickKit = getS (sv, "clickKit"); if (! clickKitNames().contains (s.clickKit)) s.clickKit.clear();
         for (auto& t : arr (sv, "tempo"))
         {
             TempoBlock b; b.bars = jmax (1, get (t, "bars", 8)); b.num = jlimit (1, 32, get (t, "num", 4)); b.den = get (t, "den", 4);
@@ -146,7 +158,7 @@ Project Project::fromVar (const var& p)
         }
         for (auto& x : arr (sv, "scenes"))
         {
-            Scene c; c.name = getS (x, "name"); c.bars = jmax (1, get (x, "bars", 8)); c.follow = get (x, "follow", 0); c.cue = getS (x, "cue");
+            Scene c; c.name = getS (x, "name"); c.bars = jmax (1, get (x, "bars", 8)); c.follow = get (x, "follow", 0); c.cue = migrateCue (getS (x, "cue"));
             s.scenes.push_back (c);
             std::vector<Clip> row;
             for (auto& y : arr (x, "clips")) { Clip k; k.file = getS (y, "file"); k.loop = get (y, "loop", false); k.srcChannel = get (y, "ch", -1); k.gainDb = get (y, "gain", 0.0f); row.push_back (k); }

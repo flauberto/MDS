@@ -20,7 +20,7 @@ elseif(WIN32)
   message(WARNING "Batuta: ASIO SDK nao encontrado em ${BATUTA_ASIO_SDK}; compilando sem ASIO")
 endif()
 
-file(GLOB BATUTA_VOICES CONFIGURE_DEPENDS Assets/voices/*.wav)
+file(GLOB BATUTA_VOICES CONFIGURE_DEPENDS Assets/sounds/*)
 juce_add_binary_data(BatutaData SOURCES ${BATUTA_VOICES} Assets/icon.png)
 
 set(ENGINE_SOURCES Source/Engine/Model.cpp Source/Engine/Engine.cpp Source/Engine/Package.cpp)

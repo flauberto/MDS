@@ -57,6 +57,7 @@ struct Song
     int countInBars = 1;
     int subdiv = 1;           // 1 = sem subdivisao, 2 = colcheias, 3 = tercinas, 4 = semicolcheias
     int padKey = -1;          // -1 = sem Auto-PAD, 0..11 = Do..Si
+    String clickKit;          // timbre do click desta musica ("" = padrao da setlist)
     std::vector<Track> tracks;
     std::vector<Scene> scenes;
     std::vector<std::vector<Clip>> clips;   // [cena][trilha]
@@ -88,7 +89,10 @@ struct Project
     PadDef pads[numPads];
     Bus buses[numBuses];
     std::vector<MidiBind> midi;
-    int clickSound = 0;
+    int clickSound = 0;       // (formato antigo, sem uso)
+    String clickKit = "Classic";          // timbre padrao da setlist
+    juce::StringArray favKits;            // timbres favoritos
+    String kitFor (const Song& s) const { return s.clickKit.isNotEmpty() ? s.clickKit : clickKit; }
     int voiceMode = 1;        // 0 = sem voz, 1 = so na contagem inicial, 2 = sempre
     int voiceLang = 0;        // 0 = portugues, 1 = ingles
     bool clickOn = true;
@@ -101,8 +105,12 @@ struct Project
 };
 
 const juce::StringArray& keyNames();
-const juce::StringArray& cueNames();        // nomes das guias de voz embutidas
+int cueIndex (const String& id);            // -1 se nao existir
+int numCues();
+String cueId (int index);
+String cueLabel (int index, int lang);      // nome para exibir (0 = portugues, 1 = ingles)
+int cueGroup (int index);                   // 0 = secao da musica, 1 = dinamica
+juce::StringArray clickKitNames();
 const juce::StringArray& builtinPadNames();
-const juce::StringArray& clickSoundNames();
 String actionName (int action, int index);
 }

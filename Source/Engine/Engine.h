@@ -39,6 +39,8 @@ public:
     void stopTrack (int track);
     void triggerPad (int pad);
     void setAutoPad (bool on);
+    void speakCue (int cueIndex);         // fala uma guia agora
+    void previewClick();                  // toca forte + normal do timbre atual
     void performAction (int action, int index, float value);   // usado pelo MIDI e pela interface
 
     void setLinkEnabled (bool);
@@ -72,7 +74,7 @@ public:
 
 private:
     struct Cmd { int type = 0, a = 0, b = 0; };
-    enum { cPlay = 1, cStop, cScene, cClip, cStopTrack, cPad, cPadOn, cPadKey };
+    enum { cPlay = 1, cStop, cScene, cClip, cStopTrack, cPad, cPadOn, cPadKey, cCue, cPreview };
     void push (Cmd);
     void handle (const Cmd&);
 
@@ -128,6 +130,8 @@ private:
     std::atomic<bool> linkEnabled { false };
     std::unique_ptr<juce::TimeSliceThread> ioThread;
     juce::AudioFormatManager formats;
+    String loadedKit; int loadedLang = -1; double loadedRate = 0;
+    std::vector<Sample> cueCache, numCache;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Engine)
 };

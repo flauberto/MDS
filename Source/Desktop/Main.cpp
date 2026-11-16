@@ -206,16 +206,19 @@ private:
             if (r == 1)
             {
                 auto& sc = s.scenes[(size_t) row];
-                StringArray cues { "Nenhuma" }; cues.addArray (bt::cueNames());
+                const int lang = app.engine.project.voiceLang;
+                StringArray cues { "Nenhuma" };
+                for (int c = 0; c < bt::numCues(); ++c) cues.add (bt::cueLabel (c, lang));
+                const int curCue = bt::cueIndex (sc.cue);
                 prompt ("Cena", { { "Nome", sc.name, {} }, { U ("Dura\xc3\xa7\xc3\xa3o (compassos)"), String (sc.bars), {} },
                                   { U ("Ao terminar a dura\xc3\xa7\xc3\xa3o (a\xc3\xa7\xc3\xa3o de seguimento)"), followNames()[sc.follow], followNames() },
-                                  { "Guia de voz ao chamar a cena", sc.cue.isEmpty() ? "Nenhuma" : sc.cue, cues } },
-                        [this, row] (StringArray v)
+                                  { "Guia de voz ao chamar a cena", curCue < 0 ? String ("Nenhuma") : bt::cueLabel (curCue, lang), cues } },
+                        [this, row, cues] (StringArray v)
                         {
                             auto& s2 = app.song(); if (row >= (int) s2.scenes.size()) return;
                             auto& sc2 = s2.scenes[(size_t) row];
                             sc2.name = v[0]; sc2.bars = jlimit (1, 999, v[1].getIntValue()); sc2.follow = jmax (0, followNames().indexOf (v[2]));
-                            sc2.cue = v[3] == "Nenhuma" ? String() : v[3];
+                            sc2.cue = bt::cueId (cues.indexOf (v[3]) - 1);
                             app.changed (false); repaint();
                         });
                 return;

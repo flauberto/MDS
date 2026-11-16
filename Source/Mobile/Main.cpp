@@ -78,6 +78,32 @@ private:
     String lastGuard; uint32 lastGuardTime = 0;
 };
 
+// Menu de timbres do click: favoritos primeiro (estrela); "forSong" escolhe o da musica atual
+static void chooseKit (MApp& app, bool forSong, std::function<void()> done)
+{
+    auto& p = app.engine.project;
+    StringArray kits;
+    for (auto& k : bt::clickKitNames()) if (p.favKits.contains (k)) kits.add (k);
+    for (auto& k : bt::clickKitNames()) if (! p.favKits.contains (k)) kits.add (k);
+    PopupMenu m, favs;
+    if (forSong) { m.addItem (1, U ("Usar o padr\xc3\xa3o da setlist (") + p.clickKit + ")", true, app.song().clickKit.isEmpty()); m.addSeparator(); }
+    for (int i = 0; i < kits.size(); ++i)
+        m.addItem (10 + i, (p.favKits.contains (kits[i]) ? U ("\xe2\x98\x85  ") : String ("     ")) + kits[i], true, forSong ? app.song().clickKit == kits[i] : p.clickKit == kits[i]);
+    for (int i = 0; i < kits.size(); ++i) favs.addItem (100 + i, kits[i], true, p.favKits.contains (kits[i]));
+    m.addSeparator(); m.addSubMenu (U ("\xe2\x98\x85  Marcar favoritos"), favs);
+    m.showMenuAsync (PopupMenu::Options().withStandardItemHeight (46).withMinimumWidth (260), [&app, kits, forSong, done] (int r)
+    {
+        auto& pr = app.engine.project;
+        if (r == 0) return;
+        if (r >= 100) { const String k = kits[r - 100]; if (pr.favKits.contains (k)) pr.favKits.removeString (k); else pr.favKits.add (k); }
+        else if (r == 1) app.song().clickKit.clear();
+        else if (forSong) app.song().clickKit = kits[r - 10] == pr.clickKit ? String() : kits[r - 10];
+        else pr.clickKit = kits[r - 10];
+        app.engine.rebuildSamples(); if (r < 100) app.engine.previewClick();
+        if (done) done();
+    });
+}
+
 //======================================================================================
 // Lista generica de linhas tocaveis (ajustes e editor de musica)
 class ActionList : public Component, private ListBoxModel
@@ -396,6 +422,8 @@ public:
             PopupMenu m; m.addItem (1, "Sem pad"); for (int k = 0; k < 12; ++k) m.addItem (k + 2, bt::keyNames()[k]);
             m.showMenuAsync (PopupMenu::Options().withStandardItemHeight (44).withMinimumWidth (200), [this] (int r) { if (r == 0) return; app.song().padKey = r - 2; app.save(); app.engine.selectSong (app.engine.songIndex); list.refresh(); });
         } });
+        rows.push_back ({ "Timbre do click", [this] { return app.song().clickKit.isEmpty() ? U ("padr\xc3\xa3o (") + app.engine.project.clickKit + ")" : app.song().clickKit; },
+                          [this] { chooseKit (app, true, [this] { app.save(); list.refresh(); }); } });
         rows.push_back ({ "Contagem inicial", [this] { const int c = app.song().countInBars; return c == 0 ? String ("sem contagem") : String (c) + (c == 1 ? " compasso" : " compassos"); },
                           [this] { static const int v[4] = { 0, 1, 2, 4 }; int i = 0; for (int k = 0; k < 4; ++k) if (v[k] == app.song().countInBars) i = k; app.song().countInBars = v[(i + 1) % 4]; app.changed (false); } });
         rows.push_back ({ U ("Subdivis\xc3\xa3o do click"), [this] { return StringArray { "nenhuma", "colcheias", "tercinas", "semicolcheias" }[app.song().subdiv - 1]; },
@@ -481,7 +509,7 @@ public:
         rows.push_back ({ "Ableton Link", [&e] { return e.isLinkEnabled() ? "ligado  (" + String (e.linkPeers()) + " aparelho(s))" : String ("desligado"); }, [&e] { e.setLinkEnabled (! e.isLinkEnabled()); } });
         rows.push_back ({ "Quem dita o andamento", [&e] { return e.linkFollow.load() ? String ("o outro aparelho (seguir)") : String ("este celular"); }, [&e] { e.setLinkFollow (! e.linkFollow.load()); } });
         rows.push_back ({ U ("Metr\xc3\xb4nomo"), {}, {}, true });
-        rows.push_back ({ "Timbre do click", [&e] { return bt::clickSoundNames()[e.project.clickSound]; }, [this, &e] { e.project.clickSound = (e.project.clickSound + 1) % 4; e.rebuildSamples(); app.save(); } });
+        rows.push_back ({ U ("Timbre padr\xc3\xa3o do click"), [&e] { return e.project.clickKit; }, [this] { chooseKit (false, [this] { app.save(); }); } });
         rows.push_back ({ "Voz de contagem", [&e] { return StringArray { "desligada", U ("s\xc3\xb3 na contagem inicial"), "sempre" }[e.project.voiceMode]; }, [this, &e] { e.project.voiceMode = (e.project.voiceMode + 1) % 3; app.changed (false); } });
         rows.push_back ({ "Idioma da voz", [&e] { return e.project.voiceLang == 1 ? U ("ingl\xc3\xaas") : U ("portugu\xc3\xaas"); }, [this, &e] { e.project.voiceLang = 1 - e.project.voiceLang; e.rebuildSamples(); app.save(); } });
         rows.push_back ({ U ("Pedais e controladores"), {}, {}, true });
@@ -530,6 +558,7 @@ public:
     void resized() override { list.setBounds (getLocalBounds().reduced (6)); }
     void paint (Graphics& g) override { g.fillAll (col::bg); }
     void tick() { if (isShowing() && ++n % 15 == 0) list.repaint(); }
+    void chooseKit (bool forSong, std::function<void()> done) { mob::chooseKit (app, forSong, std::move (done)); }
     std::function<void()> onOpenMidi;
 private:
     MApp& app; MidiAutoConnect& midiConnect; ActionList list; int n = 0;

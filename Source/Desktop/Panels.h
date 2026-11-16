@@ -345,42 +345,127 @@ private:
 };
 
 //======================================================================================
-class ClickPanel : public Component
+// Aba "Sons e voz": navegador de timbres do click com favoritos, opcoes de voz e guias ao vivo
+class ClickPanel : public Component, private ListBoxModel
 {
 public:
     explicit ClickPanel (App& a) : app (a)
     {
+        list.setModel (this); list.setRowHeight (24); addAndMakeVisible (list);
+        addAndMakeVisible (makeDefault);
+        makeDefault.setTooltip (U ("Usa o timbre desta m\xc3\xbasica como padr\xc3\xa3o para todas as m\xc3\xbasicas que n\xc3\xa3o t\xc3\xaam timbre pr\xc3\xb3prio"));
+        makeDefault.onClick = [this]
+        {
+            app.engine.project.clickKit = app.engine.project.kitFor (app.song());
+            app.song().clickKit.clear(); app.dirty = true; refresh();
+        };
         auto setup = [this] (ComboBox& c, StringArray items, std::function<void (int)> set)
         {
             c.addItemList (items, 1); addAndMakeVisible (c);
-            c.onChange = [this, &c, set] { set (c.getSelectedItemIndex()); };
+            c.onChange = [&c, set] { set (c.getSelectedItemIndex()); };
         };
-        setup (sound, bt::clickSoundNames(), [this] (int i) { app.engine.project.clickSound = i; app.engine.rebuildSamples(); app.dirty = true; });
-        setup (subdiv, { U ("Sem subdivis\xc3\xa3o"), "Colcheias (2)", "Tercinas (3)", "Semicolcheias (4)" }, [this] (int i) { app.song().subdiv = i + 1; app.changed (false); });
-        setup (voice, { "Desligada", U ("S\xc3\xb3 na contagem inicial"), "Sempre (conta todos os compassos)" }, [this] (int i) { app.engine.project.voiceMode = i; app.changed (false); });
-        setup (lang, { U ("Portugu\xc3\xaas"), U ("Ingl\xc3\xaas") }, [this] (int i) { app.engine.project.voiceLang = i; app.engine.rebuildSamples(); app.dirty = true; });
+        setup (subdiv, { U ("Sem subdivis\xc3\xa3o"), "Colcheias", "Tercinas", "Semicolcheias" }, [this] (int i) { app.song().subdiv = i + 1; app.changed (false); });
         setup (countIn, { "Sem contagem", "1 compasso", "2 compassos", "4 compassos" }, [this] (int i) { static const int v[4] = { 0, 1, 2, 4 }; app.song().countInBars = v[i]; app.changed (false); });
+        setup (voice, { "Desligada", U ("S\xc3\xb3 na contagem inicial"), "Em todos os compassos" }, [this] (int i) { app.engine.project.voiceMode = i; app.changed (false); });
+        setup (lang, { U ("Portugu\xc3\xaas"), U ("Ingl\xc3\xaas") }, [this] (int i) { app.engine.project.voiceLang = i; app.engine.rebuildSamples(); app.dirty = true; repaint(); });
         refresh();
     }
     void refresh()
     {
         auto& p = app.engine.project; auto& s = app.song();
-        sound.setSelectedItemIndex (p.clickSound, dontSendNotification); subdiv.setSelectedItemIndex (s.subdiv - 1, dontSendNotification);
+        kits.clear();
+        for (auto& k : bt::clickKitNames()) if (p.favKits.contains (k)) kits.add (k);
+        for (auto& k : bt::clickKitNames()) if (! p.favKits.contains (k)) kits.add (k);
+        list.updateContent(); list.repaint();
+        subdiv.setSelectedItemIndex (s.subdiv - 1, dontSendNotification);
         voice.setSelectedItemIndex (p.voiceMode, dontSendNotification); lang.setSelectedItemIndex (p.voiceLang, dontSendNotification);
         countIn.setSelectedItemIndex (s.countInBars >= 4 ? 3 : s.countInBars, dontSendNotification);
+        repaint();
     }
     void resized() override
     {
-        ComboBox* c[5] = { &sound, &subdiv, &countIn, &voice, &lang };
-        for (int i = 0; i < 5; ++i) c[i]->setBounds (220 + (i / 3) * 520, 16 + (i % 3) * 40, 260, 30);
+        auto r = getLocalBounds().reduced (10, 8);
+        auto left = r.removeFromLeft (280); left.removeFromTop (20);
+        makeDefault.setBounds (left.removeFromBottom (24)); left.removeFromBottom (4);
+        list.setBounds (left);
+        r.removeFromLeft (20);
+        auto mid = r.removeFromLeft (230); optArea = mid;
+        ComboBox* c[4] = { &subdiv, &countIn, &voice, &lang };
+        const int rowH = jmin (44, mid.getHeight() / 4);
+        for (auto* x : c) { auto row = mid.removeFromTop (rowH); row.removeFromTop (17); x->setBounds (row.removeFromTop (jmin (24, row.getHeight()))); }
+        r.removeFromLeft (20); cueArea = r;
+    }
+    Rectangle<int> cueCell (int n) const
+    {
+        auto a = cueArea.withTrimmedTop (20);
+        const int cols = jmax (1, a.getWidth() / 118), w = a.getWidth() / cols, h = 26;
+        return Rectangle<int> (a.getX() + (n % cols) * w, a.getY() + (n / cols) * h, w, h).reduced (2);
     }
     void paint (Graphics& g) override
     {
-        g.fillAll (col::panel); g.setColour (col::text); g.setFont (FontOptions (14.0f));
-        const char* n[5] = { "Timbre do click", "Subdivis\xc3\xa3o (desta m\xc3\xbasica)", "Contagem inicial (desta m\xc3\xbasica)", "Voz de contagem", "Idioma da voz" };
-        for (int i = 0; i < 5; ++i) g.drawText (U (n[i]), 12 + (i / 3) * 520, 16 + (i % 3) * 40, 204, 30, Justification::centredLeft);
+        g.fillAll (col::panel);
+        g.setColour (col::dim); g.setFont (FontOptions (10.5f, Font::bold));
+        g.drawText (U ("TIMBRE DO CLICK  \xc2\xb7  \xe2\x98\x85 = favorito"), 10, 8, 280, 14, Justification::left);
+        const char* n[4] = { "SUBDIVIS\xc3\x83O (DESTA M\xc3\x9aSICA)", "CONTAGEM INICIAL (DESTA M\xc3\x9aSICA)", "VOZ DE CONTAGEM", "IDIOMA DAS VOZES" };
+        ComboBox* c[4] = { &subdiv, &countIn, &voice, &lang };
+        for (int i = 0; i < 4; ++i) g.drawText (U (n[i]), c[i]->getX(), c[i]->getY() - 16, 230, 14, Justification::left);
+        g.drawText (U ("GUIAS AO VIVO  \xc2\xb7  clique para a voz falar agora no canal Voz"), cueArea.getX(), cueArea.getY(), cueArea.getWidth(), 14, Justification::left);
+        int k = 0;
+        for (int i = 0; i < bt::numCues(); ++i)
+        {
+            if (bt::cueGroup (i) != 1) continue;
+            auto r = cueCell (k++);
+            if (r.getBottom() > cueArea.getBottom()) break;
+            const bool flash = i == flashCue && Time::getMillisecondCounter() - flashTime < 200;
+            g.setColour (flash ? col::accent : col::raised); g.fillRoundedRectangle (r.toFloat(), radius);
+            g.setColour (col::line); g.drawRoundedRectangle (r.toFloat().reduced (0.5f), radius, 1.0f);
+            g.setColour (flash ? col::bg : col::text); g.setFont (FontOptions (12.0f));
+            g.drawFittedText (bt::cueLabel (i, app.engine.project.voiceLang), r.reduced (4, 0), Justification::centred, 1);
+        }
+    }
+    void mouseDown (const MouseEvent& e) override
+    {
+        int k = 0;
+        for (int i = 0; i < bt::numCues(); ++i)
+        {
+            if (bt::cueGroup (i) != 1) continue;
+            if (cueCell (k++).contains (e.getPosition())) { app.engine.speakCue (i); flashCue = i; flashTime = Time::getMillisecondCounter(); repaint(); return; }
+        }
     }
 private:
-    App& app; ComboBox sound, subdiv, voice, lang, countIn;
+    int getNumRows() override { return kits.size(); }
+    void paintListBoxItem (int row, Graphics& g, int w, int h, bool) override
+    {
+        if (row < 0 || row >= kits.size()) return;
+        auto& p = app.engine.project; const String k = kits[row];
+        const bool current = p.kitFor (app.song()) == k, fav = p.favKits.contains (k);
+        g.setColour (current ? col::accent.withAlpha (0.22f) : (row % 2 ? col::bg : col::bg.brighter (0.03f))); g.fillRect (0, 0, w, h);
+        if (current) { g.setColour (col::accent); g.fillRect (0, 0, 3, h); }
+        g.setColour (fav ? col::accent : col::line.brighter (0.2f)); g.setFont (FontOptions (15.0f));
+        g.drawText (U (fav ? "\xe2\x98\x85" : "\xe2\x98\x86"), 8, 0, 22, h, Justification::centred);
+        g.setColour (col::text); g.setFont (FontOptions (13.0f, current ? Font::bold : Font::plain));
+        g.drawText (k, 36, 0, w - 150, h, Justification::centredLeft);
+        g.setColour (col::dim); g.setFont (FontOptions (11.0f));
+        String tag;
+        if (app.song().clickKit == k) tag = U ("nesta m\xc3\xbasica");
+        if (p.clickKit == k) tag = tag.isEmpty() ? U ("padr\xc3\xa3o da setlist") : tag + U (" \xc2\xb7 padr\xc3\xa3o");
+        g.drawText (tag, w - 150, 0, 142, h, Justification::centredRight);
+    }
+    void listBoxItemClicked (int row, const MouseEvent& e) override
+    {
+        if (row < 0 || row >= kits.size()) return;
+        auto& p = app.engine.project; const String k = kits[row];
+        if (e.x < 32)
+        {
+            if (p.favKits.contains (k)) p.favKits.removeString (k); else p.favKits.add (k);
+            app.dirty = true; refresh(); return;
+        }
+        app.song().clickKit = (k == p.clickKit) ? String() : k;
+        app.dirty = true; app.engine.rebuildSamples(); app.engine.previewClick(); list.repaint();
+    }
+    App& app; ListBox list; StringArray kits;
+    TextButton makeDefault { U ("Usar o timbre atual como padr\xc3\xa3o da setlist") };
+    ComboBox subdiv, voice, lang, countIn;
+    Rectangle<int> optArea, cueArea; int flashCue = -1; uint32 flashTime = 0;
 };
 }
